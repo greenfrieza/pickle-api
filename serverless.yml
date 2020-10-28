@@ -11,12 +11,15 @@ frameworkVersion: '2'
 
 plugins:
   - serverless-offline
+  - serverless-plugin-warmup
 
 provider:
   name: aws
   runtime: nodejs12.x
   stage: brining
   region: us-west-1
+  environment:
+    PICKLE: "https://api.thegraph.com/subgraphs/name/axejintao/pickle"
 
 functions:
   get-jar-data:
@@ -46,6 +49,14 @@ functions:
             contract: "0x1bb74b5ddc1f4fc91d6f9e7906cf68bc93538e33"
             createdBlock: 11010885
             asset: "3poolcrv"
+      - schedule:
+          name: index-curve-scrv
+          description: "index historical data for pickle curve scrv jar"
+          rate: rate(35 minutes)
+          input:
+            contract: "0x68d14d66b2b0d6e157c06dc8fefa3d8ba0e66a89"
+            createdBlock: 10973000
+            asset: "scrv"
 
 # you can define service wide environment variables here
 #  environment:

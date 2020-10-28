@@ -1,7 +1,7 @@
-const AWS = require("aws-sdk")
-const https = require("https");
+const AWS = require("aws-sdk");
 const fetch = require("node-fetch");
 const client = new AWS.DynamoDB.DocumentClient({apiVersion: "2012-08-10"});
+const { getBlock } = require("../../util");
 
 const THIRTY_MIN_BLOCKS = 180;
 
@@ -11,71 +11,42 @@ exports.handler =  async (event) => {
 };
 
 const indexJar = async (asset, contract, createdBlock) => {
-  let startBlock = createdBlock; // await getLastBlock(asset, createdBlock);
-  console.log("index", asset, "from", startBlock);
+  let currentBlock = createdBlock; // await getLastBlock(asset, createdBlock);
 
   while (true) {
-    let jarResult = await queryJar(contract, startBlock);
+    console.log('index block', currentBlock);
+    const jarResult = await queryJar(contract, currentBlock);
     if (jarResult.errors != undefined && jarResult.errors != null) {
       break;
     }
     if (jarResult.data == null || jarResult.data.jar == null) {
-      startBlock += THIRTY_MIN_BLOCKS;
+      currentBlock += THIRTY_MIN_BLOCKS;
       continue;
     }
-    let jar = jarResult.data.jar;
-    let timestamp = jar.timestamp;
+    const jar = jarResult.data.jar;
+    const blockData = await getBlock(currentBlock);
+    console.log(new Date(blockData.timestamp * 1000));
+    let timestamp = blockData.timestamp;
     let balance = jar.balance / Math.pow(10, 18);
-    save(asset, startBlock, balance, timestamp);
-    startBlock += THIRTY_MIN_BLOCKS;
+    save(asset, currentBlock, balance, timestamp);
+    currentBlock += THIRTY_MIN_BLOCKS;
+    break;
   }
 };
 
 const queryJar = async (contract, block) => {
-  let jarQuery = `
+  let query = `
     {
       jar(id: "${contract}", block: {number: ${block}}) {
         balance
-        timestamp
       }
     }
   `;
-  return await postQuery(process.env.PICKLE, jarQuery);
-};
-
-const postQuery = (subgraph, query) => {
-  const options = {
-    hostname: process.env.THE_GRAPH,
-    path: subgraph,
+  const queryResult = await fetch(process.env.PICKLE, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    }
-  };
-
-  let queryRequest = new Promise((resolve, reject) => {
-    const req = https.request(options, (res) => {
-      res.setEncoding("utf8");
-      let body = "";
-
-      res.on("data", (chunk) => {
-        body += chunk;
-      });
-
-      res.on("end", () => {
-        resolve(JSON.parse(body));
-      });
-    });
-
-    req.on("error", (err) => {
-      reject(err);
-    });
-
-    req.write(JSON.stringify({query}));
-    req.end();
+    body: JSON.stringify({query})
   });
-
-  return queryRequest;
+  return queryResult.json();
 };
 
 const save = (asset, block, balance, timestamp) => {
