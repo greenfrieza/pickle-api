@@ -1,0 +1,13 @@
+{
+  "name": "pickle-api",
+  "version": "1.0.0",
+  "description": "Pickle Serverless API",
+  "repository": "git@github.com:axejintao/pickle-api.git",
+  "author": "axejintao",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.6.1",
+    "serverless-offline": "^6.8.0",
+    "serverless-plugin-warmup": "^4.9.0"
+  }
+}

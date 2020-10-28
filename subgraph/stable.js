@@ -3,19 +3,19 @@ const https = require('https');
 const client = new AWS.DynamoDB.DocumentClient({apiVersion: "2012-08-10"});
 
 const THIRTY_MIN_BLOCKS = 180;
+
 exports.handler =  async (event) => {
-  await indexJar(event.type, event.asset, event.contract, event.startBlock);
+  await indexJar(event.asset, event.contract, event.createdBlock);
   return 200;
 };
 
-async function indexJar(type, asset, contract, createdBlock) {
+const indexJar = async (asset, contract, createdBlock) => {
   let startBlock = await getLastBlock(asset, createdBlock);
   console.log('index', asset, 'from', startBlock);
 
   while (true) {
     let jarResult = await queryJar(contract, startBlock);
     if (jarResult.errors != undefined && jarResult.errors != null) {
-      console.log('indexed up to ', startBlock);
       break;
     }
     if (jarResult.data == null || jarResult.data.jar == null) {
@@ -24,69 +24,22 @@ async function indexJar(type, asset, contract, createdBlock) {
     }
     let jar = jarResult.data.jar;
     let timestamp = jar.timestamp;
-    let jarSupply = jar.totalSupply / Math.pow(10, 18);
-    let jarBalance = jar.balance / Math.pow(10, 18);
-
-    let balance;
-    if (type == 'uni') {
-      balance = await getUniBalance(jar.token.id, startBlock, jarSupply);
-    } else if (type == 'btc') {
-      let btcPrice = await getBtcPrice(startBlock);
-      balance = jarBalance * btcPrice;
-    }
-
-    save(client, asset, startBlock, balance, timestamp);
+    let balance = jar.balance / Math.pow(10, 18);
+    save(asset, startBlock, balance, timestamp);
     startBlock += THIRTY_MIN_BLOCKS;
   }
-}
+};
 
 const queryJar = async (contract, block) => {
   let jarQuery = `
     {
       jar(id: "${contract}", block: {number: ${block}}) {
-        token {
-          id
-        }
         balance
-        totalSupply
         timestamp
       }
     }
   `;
-
   return await postQuery(process.env.PICKLE, jarQuery);
-};
-
-const getUniBalance = async (token, block, jarSupply) => {
-  let pairQuery = `
-    {
-      pair(id: "${token}", block: {number: ${block}}) {
-        reserveUSD
-        totalSupply
-      }
-    }
-  `;
-
-  let pairResult = await postQuery(process.env.UNISWAP, pairQuery);
-  let reserveUSD = pairResult.data.pair.reserveUSD;
-  let pairSupply = pairResult.data.pair.totalSupply;
-  return reserveUSD * (jarSupply / pairSupply);
-};
-
-const getBtcPrice = async (block) => {
-  let pairQuery = `
-    {
-      pair(id: "0xbb2b8038a1640196fbe3e38816f3e67cba72d940", block: {number: ${block}}) {
-        reserveUSD
-        reserve0
-      }
-    }
-  `;
-
-  let pairResult = await postQuery(process.env.UNISWAP, pairQuery);
-  let reserveUSD = pairResult.data.pair.reserveUSD;
-  let reserve0 = pairResult.data.pair.reserve0;
-  return reserveUSD / (2 * reserve0);
 };
 
 const postQuery = (subgraph, query) => {
@@ -124,9 +77,9 @@ const postQuery = (subgraph, query) => {
   return queryRequest;
 };
 
-const save = (client, asset, block, balance, timestamp)  => {
+const save = (asset, block, balance, timestamp) => {
   let params = {
-    TableName: 'jar',
+    TableName: 'pickle_jar',
     Item: {
       asset: asset,
       height: block,
@@ -154,4 +107,3 @@ const getLastBlock = async (asset, createdBlock) => {
   let result = await client.query(params).promise();
   return result.Items.length > 0 ? result.Items[0].height : createdBlock;
 };
- 
