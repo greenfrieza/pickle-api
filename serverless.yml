@@ -1,12 +1,4 @@
 service: pickle
-# package:
-#   individually: true
-# app and org for use with dashboard.serverless.com
-#app: your-app-name
-#org: your-org-name
-
-# You can pin your service to only deploy with a specific Serverless version
-# Check out our docs for more details
 frameworkVersion: '2'
 
 plugins:
@@ -120,24 +112,24 @@ functions:
             createdBlock: 11010902
             asset: "wbtc-eth"
       - schedule:
-          name: index-uniswap-wbtc-eth
-          description: "index historical data for pickle uniswap wbtc-eth jar"
+          name: index-uniswap-usdc-eth
+          description: "index historical data for pickle uniswap usdc-eth jar"
           rate: rate(35 minutes)
           input:
             contract: "0x53bf2e62fa20e2b4522f05de3597890ec1b352c6"
             createdBlock: 10960599
             asset: "usdc-eth"
       - schedule:
-          name: index-uniswap-wbtc-eth
-          description: "index historical data for pickle uniswap wbtc-eth jar"
+          name: index-uniswap-usdt-eth
+          description: "index historical data for pickle uniswap usdt-eth jar"
           rate: rate(35 minutes)
           input:
             contract: "0x09fc573c502037b149ba87782acc81cf093ec6ef"
             createdBlock: 10960612
             asset: "usdt-eth"
       - schedule:
-          name: index-uniswap-wbtc-eth
-          description: "index historical data for pickle uniswap wbtc-eth jar"
+          name: index-uniswap-dai-eth
+          description: "index historical data for pickle uniswap dai-eth jar"
           rate: rate(35 minutes)
           input:
             contract: "0xcffa068f1e44d98d3753966ebd58d4cfe3bb5162"
