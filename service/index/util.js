@@ -24,6 +24,5 @@ module.exports.saveItem = async (table, item) => {
     TableName: table,
     Item: item
   };
-  console.log(params);
-  return await client.put(params).promise();
+  return await ddb.put(params).promise();
 };

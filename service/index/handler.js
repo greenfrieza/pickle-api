@@ -9,18 +9,18 @@ exports.handler =  async (event) => {
 
   while (true) {
     const rewards = await queryRewardsContract(contract, block);
-    console.log("BlocK: ", block, rewards);
+    console.log("Block: ", block, rewards);
 
     if (rewards.errors != undefined && rewards.errors != null) {
       break;
     }
 
-    if (rewards.data == null || rewards.data.rewardContracts == null) {
+    if (rewards.data == null || rewards.data.rewardContract == null) {
       block += THIRTY_MIN_BLOCKS;
       continue;
     }
 
-    const rewardsData = rewards.data.rewardContracts;
+    const rewardsData = rewards.data.rewardContract;
     const blockData = await getBlock(block);
     const timestamp = blockData.timestamp * 1000;
     const paid = rewardsData.totalRewards / Math.pow(10, 18);
@@ -36,7 +36,6 @@ exports.handler =  async (event) => {
       remaining: remaining,
     }
 
-    console.log(snapshot);
     saveItem(process.env.REWARDS_DATA, snapshot);
     block += THIRTY_MIN_BLOCKS;
   }
@@ -55,7 +54,6 @@ const queryRewardsContract = async (contract, block) => {
       }
     }
   `;
-  console.log(query);
   const queryResult = await fetch(process.env.PICKLE, {
     method: "POST",
     body: JSON.stringify({query})
