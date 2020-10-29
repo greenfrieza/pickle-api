@@ -9,7 +9,6 @@ exports.handler =  async (event) => {
 
   while (true) {
     const rewards = await queryRewardsContract(contract, block);
-    console.log(rewards);
 
     if (rewards.errors != undefined && rewards.errors != null) {
       break;
