@@ -5,7 +5,7 @@ const THIRTY_MIN_BLOCKS = 180;
 
 exports.handler =  async (event) => {
   const { asset, createdBlock, contract } = event;
-  let block = await getIndexedBlock(asset, createdBlock);
+  let block = await getIndexedBlock(process.env.ASSET_DATA, asset, createdBlock);
   console.log(`Index rewards contract ${asset} at height: ${block}`);
 
   while (true) {
@@ -35,7 +35,7 @@ exports.handler =  async (event) => {
     saveItem(process.env.ASSET_DATA, snapshot);
     block += THIRTY_MIN_BLOCKS;
   }
-  
+
   return 200;
 };
 

@@ -18,6 +18,8 @@ provider:
   runtime: nodejs12.x
   stage: brining
   region: us-west-1
+  apiGateway:
+    shouldStartNameWithService: true
   environment:
     PICKLE: "https://api.thegraph.com/subgraphs/name/axejintao/pickle"
     ASSET_DATA: "brining"
@@ -25,7 +27,7 @@ provider:
 
 functions:
   get-jar-data:
-    handler: service/jar/history/handler.handler
+    handler: service/history/jar/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
     timeout: 10
     events:
@@ -38,8 +40,22 @@ functions:
               querystrings:
                 count: false
 
+  get-reward-data:
+    handler: service/history/reward/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 10
+    events:
+      - http:
+          path: /reward/{token}
+          method: get
+          cors: true
+          request:
+            parameters:
+              querystrings:
+                count: false
+
   index-staking:
-    handler: service/jar/index/handler.handler
+    handler: service/index/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
     timeout: 300
     events:
@@ -50,18 +66,18 @@ functions:
           input:
             contract: "0xd86f33388bf0bfdf0ccb1ecb4a48a1579504dc0a"
             createdBlock: 10987327
-            asset: "picklescrv"
+            asset: "scrv"
       - schedule:
           name: index-staking-weth
           description: "index historical data for pickle rewards contract weth token"
           rate: rate(35 minutes)
           input:
             contract: "0xa17a8883dA1aBd57c690DF9Ebf58fC194eDAb66F"
-            createdBlock: 10830521
-            asset: "pickleweth"
+            createdBlock: 11147661
+            asset: "weth"
 
   index-curve-stable:
-    handler: service/jar/index/curve/stable/handler.handler
+    handler: service/index/curve/stable/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
     timeout: 300
     events:

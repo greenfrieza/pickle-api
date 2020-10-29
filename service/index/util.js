@@ -5,9 +5,9 @@ const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: "2012-08-10"});
 
 module.exports.getBlock = async (blockNumber) => await web3.eth.getBlock(blockNumber);
 
-module.exports.getIndexedBlock = async (asset, createdBlock) => {
+module.exports.getIndexedBlock = async (table, asset, createdBlock) => {
   const params = {
-    TableName : process.env.TABLE_NAME,
+    TableName : table,
     KeyConditionExpression: "asset = :asset",
     ExpressionAttributeValues: {
         ":asset": asset
@@ -24,5 +24,6 @@ module.exports.saveItem = async (table, item) => {
     TableName: table,
     Item: item
   };
+  console.log(params);
   return await client.put(params).promise();
 };
