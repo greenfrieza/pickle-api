@@ -1,5 +1,5 @@
 const fetch = require("node-fetch");
-const { getBlock, getIndexedBlock, saveItem } = require("../../util");
+const { getBlock, getIndexedBlock, saveItem } = require("../util");
 
 const THIRTY_MIN_BLOCKS = parseInt(30 * 60 / 13);
 exports.handler =  async (event) => {
@@ -20,9 +20,10 @@ exports.handler =  async (event) => {
     }
 
     const jarData = jar.data.jar;
+    const supply = jarData.totalSupply / Math.pow(10, 18);
     const blockData = await getBlock(block);
     const timestamp = blockData.timestamp * 1000;
-    const balance = jarData.balance / Math.pow(10, 18);
+    const balance = getBalance(jarData.token.id, block, supply);
 
     const snapshot = {
       asset: asset,
@@ -39,10 +40,14 @@ exports.handler =  async (event) => {
 };
 
 const queryJar = async (contract, block) => {
-  let query = `
+  const query = `
     {
       jar(id: "${contract}", block: {number: ${block}}) {
+        token {
+          id
+        }
         balance
+        totalSupply
       }
     }
   `;
@@ -51,4 +56,23 @@ const queryJar = async (contract, block) => {
     body: JSON.stringify({query})
   });
   return queryResult.json();
+};
+
+const getBalance = async (token, block, supply) => {
+  const query = `
+    {
+      pair(id: "${token}", block: {number: ${block}}) {
+        reserveUSD
+        totalSupply
+      }
+    }
+  `;
+  const queryResult = await fetch(process.env.PICKLE, {
+    method: "POST",
+    body: JSON.stringify({query})
+  });
+  const pairResult = await queryResult.json();
+  const reserveUSD = pairResult.data.pair.reserveUSD;
+  const pairSupply = pairResult.data.pair.totalSupply;
+  return reserveUSD * (supply / pairSupply);
 };

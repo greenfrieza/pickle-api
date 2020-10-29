@@ -105,3 +105,41 @@ functions:
             contract: "0x6949bb624e8e8a90f87cd2058139fcd77d2f3f87"
             createdBlock: 11044218
             asset: "cdai"
+
+  index-uniswap-pool:
+    handler: service/index/curve/stable/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 300
+    events:
+      - schedule:
+          name: index-uniswap-wbtc-eth
+          description: "index historical data for pickle uniswap wbtc-eth jar"
+          rate: rate(35 minutes)
+          input:
+            contract: "0xc80090aa05374d336875907372ee4ee636cbc562"
+            createdBlock: 11010902
+            asset: "wbtc-eth"
+      - schedule:
+          name: index-uniswap-wbtc-eth
+          description: "index historical data for pickle uniswap wbtc-eth jar"
+          rate: rate(35 minutes)
+          input:
+            contract: "0x53bf2e62fa20e2b4522f05de3597890ec1b352c6"
+            createdBlock: 10960599
+            asset: "usdc-eth"
+      - schedule:
+          name: index-uniswap-wbtc-eth
+          description: "index historical data for pickle uniswap wbtc-eth jar"
+          rate: rate(35 minutes)
+          input:
+            contract: "0x09fc573c502037b149ba87782acc81cf093ec6ef"
+            createdBlock: 10960612
+            asset: "usdt-eth"
+      - schedule:
+          name: index-uniswap-wbtc-eth
+          description: "index historical data for pickle uniswap wbtc-eth jar"
+          rate: rate(35 minutes)
+          input:
+            contract: "0xcffa068f1e44d98d3753966ebd58d4cfe3bb5162"
+            createdBlock: 10960588
+            asset: "dai-eth"

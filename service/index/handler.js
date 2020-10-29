@@ -9,6 +9,7 @@ exports.handler =  async (event) => {
 
   while (true) {
     const rewards = await queryRewardsContract(contract, block);
+    console.log("BlocK: ", block, rewards);
 
     if (rewards.errors != undefined && rewards.errors != null) {
       break;
@@ -54,6 +55,7 @@ const queryRewardsContract = async (contract, block) => {
       }
     }
   `;
+  console.log(query);
   const queryResult = await fetch(process.env.PICKLE, {
     method: "POST",
     body: JSON.stringify({query})
