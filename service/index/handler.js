@@ -23,16 +23,16 @@ exports.handler =  async (event) => {
     const rewardsData = rewards.data.rewardContract;
     const blockData = await getBlock(block);
     const timestamp = blockData.timestamp * 1000;
+    const staked = ((rewardsData.stakedTokens / rewardsData.stakingTokenTotalSupply) * 100).toFixed(2);
     const paid = rewardsData.totalRewards / Math.pow(10, 18);
     const remaining = rewardsData.currentRewards / Math.pow(10, 18);
-    const staked = (rewardsData.stakedTokens / rewardsData.stakingTokenTotalSupply) * 100;
 
     const snapshot = {
       asset: asset,
       height: block,
       timestamp: timestamp,
       staked: staked,
-      paid: paid,
+      rewards: paid,
       remaining: remaining,
     }
 

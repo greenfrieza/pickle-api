@@ -20,17 +20,22 @@ exports.handler =  async (event) => {
     }
 
     const jarData = jar.data.jar;
-    const supply = jarData.totalSupply / Math.pow(10, 18);
     const blockData = await getBlock(block);
     const timestamp = blockData.timestamp * 1000;
-    const balance = getBalance(jarData.token.id, block, supply);
+    const balance = jarData.balance / Math.pow(10, 18);
+    const supply = jarData.totalSupply / Math.pow(10, 18);
+    const ratio = jarData.ratio / Math.pow(10, 18);
+    const value = (await getBalance(jarData.token.id, block, supply)).toFixed(2);
 
     const snapshot = {
       asset: asset,
       height: block,
       timestamp: timestamp,
       balance: balance,
-    }
+      supply: supply,
+      ratio: ratio,
+      value: value,
+    };
 
     saveItem(process.env.ASSET_DATA, snapshot);
     block += THIRTY_MIN_BLOCKS;
@@ -47,6 +52,7 @@ const queryJar = async (contract, block) => {
           id
         }
         balance
+        ratio
         totalSupply
       }
     }
@@ -67,12 +73,11 @@ const getBalance = async (token, block, supply) => {
       }
     }
   `;
-  const queryResult = await fetch(process.env.PICKLE, {
+  const queryResult = await fetch(process.env.UNISWAP, {
     method: "POST",
     body: JSON.stringify({query})
-  });
-  const pairResult = await queryResult.json();
-  const reserveUSD = pairResult.data.pair.reserveUSD;
-  const pairSupply = pairResult.data.pair.totalSupply;
+  }).then(response => response.json());
+  const reserveUSD = queryResult.data.pair.reserveUSD;
+  const pairSupply = queryResult.data.pair.totalSupply;
   return reserveUSD * (supply / pairSupply);
 };

@@ -14,6 +14,7 @@ provider:
     shouldStartNameWithService: true
   environment:
     PICKLE: "https://api.thegraph.com/subgraphs/name/axejintao/pickle"
+    UNISWAP: "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
     ASSET_DATA: "brining"
     REWARDS_DATA: "brining-rewards"
 
@@ -64,7 +65,7 @@ functions:
           description: "index historical data for pickle rewards contract weth token"
           rate: rate(35 minutes)
           input:
-            contract: "0xa17a8883dA1aBd57c690DF9Ebf58fC194eDAb66F"
+            contract: "0xa17a8883da1abd57c690df9ebf58fc194edab66f"
             createdBlock: 11147661
             asset: "weth"
 
@@ -98,8 +99,22 @@ functions:
             createdBlock: 11044218
             asset: "cdai"
 
+  index-curve-btc:
+    handler: service/index/curve/btc/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 300
+    events:
+      - schedule:
+          name: index-curve-renbtc
+          description: "index historical data for pickle curve renbtc jar"
+          rate: rate(35 minutes)
+          input:
+            contract: "0x2e35392f4c36eba7ecafe4de34199b2373af22ec"
+            createdBlock: 11010898
+            asset: "renbtccrv"
+
   index-uniswap-pool:
-    handler: service/index/curve/stable/handler.handler
+    handler: service/index/uniswap/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
     timeout: 300
     events:
@@ -135,3 +150,8 @@ functions:
             contract: "0xcffa068f1e44d98d3753966ebd58d4cfe3bb5162"
             createdBlock: 10960588
             asset: "dai-eth"
+
+  index-legacy-jars:
+    handler: service/index/legacy/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 900

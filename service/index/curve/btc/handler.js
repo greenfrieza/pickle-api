@@ -20,12 +20,13 @@ exports.handler =  async (event) => {
     }
 
     const jarData = jar.data.jar;
+    const btcPrice = await getBtcPrice(block);
     const blockData = await getBlock(block);
     const timestamp = blockData.timestamp * 1000;
     const balance = jarData.balance / Math.pow(10, 18);
     const supply = jarData.totalSupply / Math.pow(10, 18);
     const ratio = jarData.ratio / Math.pow(10, 18);
-    const value = supply.toFixed(2);
+    const value = (btcPrice * supply).toFixed(2);
 
     const snapshot = {
       asset: asset,
@@ -35,7 +36,7 @@ exports.handler =  async (event) => {
       supply: supply,
       ratio: ratio,
       value: value,
-    };
+    }
 
     saveItem(process.env.ASSET_DATA, snapshot);
     block += THIRTY_MIN_BLOCKS;
@@ -59,4 +60,22 @@ const queryJar = async (contract, block) => {
     body: JSON.stringify({query})
   });
   return queryResult.json();
+};
+
+const getBtcPrice = async (block) => {
+  let query = `
+    {
+      pair(id: "0xbb2b8038a1640196fbe3e38816f3e67cba72d940", block: {number: ${block}}) {
+        reserveUSD
+        reserve0
+      }
+    }
+  `;
+  const queryResult = await fetch(process.env.UNISWAP, {
+    method: "POST",
+    body: JSON.stringify({query})
+  }).then(response => response.json());
+  const reserveUSD = queryResult.data.pair.reserveUSD;
+  const reserve0 = queryResult.data.pair.reserve0;
+  return reserveUSD / (2 * reserve0);
 };

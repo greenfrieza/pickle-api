@@ -1,7 +1,7 @@
 const AWS = require("aws-sdk");
 const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: "2012-08-10"});
 
-module.exports.getChartData = async (table, asset, count) => {
+module.exports.getAssetData = async (table, asset, count) => {
   let params = {
     TableName : table,
     KeyConditionExpression: "asset = :asset",
@@ -14,9 +14,10 @@ module.exports.getChartData = async (table, asset, count) => {
     params = { 
       ...params,
       Limit: count,
+      ScanIndexForward: false,
     };
   }
 
-  const history = await client.query(params).promise();
-  return history.Items.map(item => ({x: item.timestamp, y: parseFloat(item.balance)}));
+  const data = await ddb.query(params).promise();
+  return count ? data.Items.reverse() : data.Items;
 };
