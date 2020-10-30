@@ -1,5 +1,5 @@
 const fetch = require("node-fetch");
-const { getBlock, getIndexedBlock, saveItem } = require("../util");
+const { getBlock, saveItem } = require("../../util");
 
 const jars = {
   daiv1: {

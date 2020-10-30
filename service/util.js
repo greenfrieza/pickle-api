@@ -26,3 +26,24 @@ module.exports.saveItem = async (table, item) => {
   };
   return await ddb.put(params).promise();
 };
+
+module.exports.getAssetData = async (table, asset, count) => {
+  let params = {
+    TableName : table,
+    KeyConditionExpression: "asset = :asset",
+    ExpressionAttributeValues: {
+        ":asset": asset
+    },
+  };
+
+  if (count) {
+    params = { 
+      ...params,
+      Limit: count,
+      ScanIndexForward: false,
+    };
+  }
+
+  const data = await ddb.query(params).promise();
+  return count ? data.Items.reverse() : data.Items;
+};
