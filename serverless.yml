@@ -43,6 +43,16 @@ functions:
               querystrings:
                 count: false
 
+  get-jar-performance:
+    handler: service/history/jar/performance/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 10
+    events:
+      - http:
+          path: /jar/{jarname}/performance
+          method: get
+          cors: true
+
   get-reward-data:
     handler: service/history/reward/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole

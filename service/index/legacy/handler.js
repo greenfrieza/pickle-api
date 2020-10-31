@@ -1,5 +1,5 @@
 const fetch = require("node-fetch");
-const { getBlock, saveItem } = require("../../util");
+const { getBlock, saveItem, getIndexedBlock } = require("../../util");
 
 const jars = {
   daiv1: {
@@ -44,31 +44,29 @@ async function indexJar(type, asset, contract, block, stopBlock) {
   console.log('index', asset, 'from', block);
 
   while (true && (stopBlock == undefined || block < stopBlock)) {
-    let jarResult = await queryJar(contract, block);
+    let jar = await queryJar(contract, block);
 
-    if (jarResult.errors != undefined && jarResult.errors != null) {
+    if (jar.errors != undefined && jar.errors != null) {
       break;
     }
 
-    if (jarResult.data == null || jarResult.data.jar == null) {
+    if (jar.data == null || jar.data.jar == null) {
       block += THIRTY_MIN_BLOCKS;
       continue;
     }
 
-    let jar = jarResult.data.jar;
+    const jarData = jar.data.jar;
     const blockData = await getBlock(block);
     const timestamp = blockData.timestamp * 1000;
-    let jarSupply = jar.totalSupply / Math.pow(10, 18);
-    let jarBalance = jar.balance / Math.pow(10, 18);
+    const balance = jarData.balance / Math.pow(10, 18);
+    const supply = jarData.totalSupply / Math.pow(10, 18);
+    const ratio = jarData.ratio / Math.pow(10, 18);
 
-    let balance;
+    let value;
     if (type == 'uni') {
-      balance = await getUniBalance(jar.token.id, block, jarSupply);
+      value = (await getUniBalance(jarData.token.id, block, supply)).toFixed(2);
     } else if (type == 'compound') {
-      balance = jarBalance;
-    } else if (type == 'btc') {
-      let btcPrice = await getBtcPrice(block);
-      balance = jarBalance * btcPrice;
+      value = supply.toFixed(2);;
     }
 
     const snapshot = {
@@ -76,6 +74,9 @@ async function indexJar(type, asset, contract, block, stopBlock) {
       height: block,
       timestamp: timestamp,
       balance: balance,
+      supply: supply,
+      ratio: ratio,
+      value: value,
     };
 
     saveItem(process.env.ASSET_DATA, snapshot);
@@ -91,6 +92,7 @@ const queryJar = async (contract, block) => {
         id
       }
       balance
+      ratio
       totalSupply
     }
   }
@@ -118,22 +120,4 @@ const getUniBalance = async (token, block, supply) => {
   const reserveUSD = queryResult.data.pair.reserveUSD;
   const pairSupply = queryResult.data.pair.totalSupply;
   return reserveUSD * (supply / pairSupply);
-};
-
-const getBtcPrice = async (block) => {
-  let query = `
-    {
-      pair(id: "0xbb2b8038a1640196fbe3e38816f3e67cba72d940", block: {number: ${block}}) {
-        reserveUSD
-        reserve0
-      }
-    }
-  `;
-  const queryResult = await fetch(process.env.UNISWAP, {
-    method: "POST",
-    body: JSON.stringify({query})
-  }).then(response => response.json());
-  const reserveUSD = queryResult.data.pair.reserveUSD;
-  const reserve0 = queryResult.data.pair.reserve0;
-  return reserveUSD / (2 * reserve0);
 };

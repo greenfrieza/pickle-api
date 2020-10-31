@@ -4,7 +4,7 @@ const { getBlock, getIndexedBlock, saveItem } = require("../util");
 const THIRTY_MIN_BLOCKS = parseInt(30 * 60 / 13);
 exports.handler =  async (event) => {
   const { asset, createdBlock, contract } = event;
-  let block = await getIndexedBlock(process.env.REWARDS_DATA, asset, createdBlock);
+  let block = await getIndexedBlock(process.env.REWARD_DATA, asset, createdBlock);
   console.log(`Index rewards contract ${asset} at height: ${block}`);
 
   while (true) {
