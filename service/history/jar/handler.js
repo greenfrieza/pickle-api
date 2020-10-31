@@ -9,7 +9,7 @@ exports.handler = async (event) => {
   const asset = event.pathParameters.jarname;
   const count = event.queryStringParameters ? event.queryStringParameters.count : null;
   const data = await getAssetData(process.env.ASSET_DATA, asset, count);
-  const points = data.map(item => ({x: item.timestamp, y: parseFloat(item.balance)}));
+  const points = data.map(item => ({x: item.timestamp, y: parseFloat(item.value)}));
 
   return {
     statusCode: 200,

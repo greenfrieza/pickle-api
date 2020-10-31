@@ -24,19 +24,19 @@ exports.handler =  async (event) => {
     const blockData = await getBlock(block);
     const timestamp = blockData.timestamp * 1000;
     const staked = ((rewardsData.stakedTokens / rewardsData.stakingTokenTotalSupply) * 100).toFixed(2);
-    const paid = rewardsData.totalRewards / Math.pow(10, 18);
-    const remaining = rewardsData.currentRewards / Math.pow(10, 18);
+    const total = rewardsData.totalRewards / Math.pow(10, 18);
+    const current = rewardsData.currentRewards / Math.pow(10, 18);
 
     const snapshot = {
       asset: asset,
       height: block,
       timestamp: timestamp,
       staked: staked,
-      rewards: paid,
-      remaining: remaining,
-    }
+      total: total,
+      current: current,
+    };
 
-    saveItem(process.env.REWARDS_DATA, snapshot);
+    saveItem(process.env.REWARD_DATA, snapshot);
     block += THIRTY_MIN_BLOCKS;
   }
 

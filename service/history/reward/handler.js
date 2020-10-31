@@ -8,7 +8,7 @@ exports.handler = async (event) => {
   
   const asset = event.pathParameters.token;
   const count = event.queryStringParameters ? event.queryStringParameters.count : null;
-  const data = await getAssetData(process.env.REWARDS_DATA, asset, count);
+  const data = await getAssetData(process.env.REWARD_DATA, asset, count);
   const points = data.map(item => ({x: item.timestamp, y: parseFloat(item.staked)}));
 
   return {
