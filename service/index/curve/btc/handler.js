@@ -26,7 +26,7 @@ exports.handler =  async (event) => {
     const balance = jarData.balance / Math.pow(10, 18);
     const supply = jarData.totalSupply / Math.pow(10, 18);
     const ratio = jarData.ratio / Math.pow(10, 18);
-    const value = (btcPrice * supply).toFixed(2);
+    const value = (btcPrice * balance).toFixed(2);
 
     const snapshot = {
       asset: asset,

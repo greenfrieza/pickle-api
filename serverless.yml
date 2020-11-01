@@ -75,7 +75,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-staking-scrv
           description: "index historical data for pickle rewards contract scrv token"
-          rate: rate(5 mintues)
+          rate: rate(5 minutes)
           input:
             contract: "0xd86f33388bf0bfdf0ccb1ecb4a48a1579504dc0a"
             createdBlock: 10987327
@@ -83,7 +83,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-staking-weth
           description: "index historical data for pickle rewards contract weth token"
-          rate: rate(5 mintues)
+          rate: rate(5 minutes)
           input:
             contract: "0xa17a8883da1abd57c690df9ebf58fc194edab66f"
             createdBlock: 11147661
@@ -97,7 +97,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-curve-3pool
           description: "index historical data for pickle curve 3pool jar"
-          rate: rate(5 mintues)
+          rate: rate(5 minutes)
           input:
             contract: "0x1bb74b5ddc1f4fc91d6f9e7906cf68bc93538e33"
             createdBlock: 11010885
@@ -105,7 +105,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-curve-scrv
           description: "index historical data for pickle curve scrv jar"
-          rate: rate(5 mintues)
+          rate: rate(5 minutes)
           input:
             contract: "0x68d14d66b2b0d6e157c06dc8fefa3d8ba0e66a89"
             createdBlock: 10973000
@@ -113,7 +113,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-compound-cdai
           description: "index historical data for pickle curve cdai jar"
-          rate: rate(5 mintues)
+          rate: rate(5 minutes)
           input:
             contract: "0x6949bb624e8e8a90f87cd2058139fcd77d2f3f87"
             createdBlock: 11044218
@@ -127,7 +127,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-curve-renbtc
           description: "index historical data for pickle curve renbtc jar"
-          rate: rate(5 mintues)
+          rate: rate(5 minutes)
           input:
             contract: "0x2e35392f4c36eba7ecafe4de34199b2373af22ec"
             createdBlock: 11010898
@@ -141,7 +141,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-uniswap-wbtc-eth
           description: "index historical data for pickle uniswap wbtc-eth jar"
-          rate: rate(5 mintues)
+          rate: rate(5 minutes)
           input:
             contract: "0xc80090aa05374d336875907372ee4ee636cbc562"
             createdBlock: 11010902
@@ -149,7 +149,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-uniswap-usdc-eth
           description: "index historical data for pickle uniswap usdc-eth jar"
-          rate: rate(5 mintues)
+          rate: rate(5 minutes)
           input:
             contract: "0x53bf2e62fa20e2b4522f05de3597890ec1b352c6"
             createdBlock: 10960599
@@ -157,7 +157,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-uniswap-usdt-eth
           description: "index historical data for pickle uniswap usdt-eth jar"
-          rate: rate(5 mintues)
+          rate: rate(5 minutes)
           input:
             contract: "0x09fc573c502037b149ba87782acc81cf093ec6ef"
             createdBlock: 10960612
@@ -165,7 +165,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-uniswap-dai-eth
           description: "index historical data for pickle uniswap dai-eth jar"
-          rate: rate(5 mintues)
+          rate: rate(5 minutes)
           input:
             contract: "0xcffa068f1e44d98d3753966ebd58d4cfe3bb5162"
             createdBlock: 10960588

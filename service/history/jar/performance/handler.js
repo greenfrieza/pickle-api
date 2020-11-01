@@ -13,7 +13,10 @@ const getRatio = (data, offset) => data.length > offset ? data[data.length - (of
 const getBlock = (data, offset) => data.length > offset ? data[data.length - (offset + 1)].height : undefined;
 const getPerformance = (cRatio, pRatio, cBlock, pBlock, days) => {
   if (pRatio) {
-    return (365 / days) * (cRatio - pRatio) / (cBlock - pBlock) * 100;
+    const blocks = cBlock - pBlock;
+    const scalar = (365 / days) * blocks;
+    const slope = (cRatio - pRatio) / blocks;
+    return scalar * slope * 100;
   }
   return undefined;
 };
