@@ -67,6 +67,16 @@ functions:
               querystrings:
                 count: false
 
+  get-user-earnings:
+    handler: service/earnings/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 10
+    events:
+      - http:
+          path: /earnings/{userId}
+          method: get
+          cors: true
+
   index-staking:
     handler: service/index/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
@@ -170,8 +180,3 @@ functions:
             contract: "0xcffa068f1e44d98d3753966ebd58d4cfe3bb5162"
             createdBlock: 10960588
             asset: "dai-eth"
-
-  index-legacy-jars:
-    handler: service/index/legacy/handler.handler
-    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
-    timeout: 900
