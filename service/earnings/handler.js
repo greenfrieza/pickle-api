@@ -40,6 +40,8 @@ exports.handler = async (event) => {
       earnedUsd = earned * await getUniswapPrice(data.jar.token.id);
     } else if (data.jar.symbol == "pcrvRenWBTC") {
       earnedUsd = earned * await getBtcPrice();
+    } else if (data.jar.symbol == "crvPlain3andSUSD") {
+      earnedUsd = earned * await getScrvPrice();
     } else {
       earnedUsd = earned;
     }
@@ -54,7 +56,8 @@ exports.handler = async (event) => {
 
   const jarEarningsUsd = jarEarnings ? jarEarnings.map(jar => jar.earnedUsd).reduce((total, earnedUsd) => total + earnedUsd) : 0;
   const wethEarningsUsd = wethRewards * await getEthPrice();
-  const earnings = jarEarningsUsd + wethEarningsUsd + scrvRewards;
+  const scrvEarningsUsd = scrvRewards * await getScrvPrice();;
+  const earnings = jarEarningsUsd + wethEarningsUsd + scrvEarningsUsd;
   const user = {
     userId: userId,
     earnings: earnings,
@@ -76,6 +79,16 @@ const getBtcPrice = async () => {
 
 const getEthPrice = async () => {
   return await getPrice("ethereum");
+}
+
+const getScrvPrice = async () => {
+  return await getContractPrice("0xc25a3a3b969415c80451098fa907ec722572917f");
+}
+
+const getContractPrice = async (contract) => {
+  return await fetch(`https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${contract}&vs_currencies=usd`)
+  .then(response => response.json())
+  .then(json => json[contract].usd);
 }
 
 const getPrice = async (token) => {
