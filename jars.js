@@ -9,7 +9,7 @@ module.exports.jars = {
     asset: "USDC-ETH",
   },
   "0x09fc573c502037b149ba87782acc81cf093ec6ef": {
-    asset: "USDC-ETH",
+    asset: "USDT-ETH",
   },
   "0x6949bb624e8e8a90f87cd2058139fcd77d2f3f87": {
     asset: "cDAI",

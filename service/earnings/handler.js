@@ -1,5 +1,6 @@
 const fetch = require("node-fetch");
 const { jars } = require("../../jars");
+const { getTokenPrice, getContractPrice } = require("../util");
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +14,7 @@ exports.handler = async (event) => {
   }
 
   const userId = event.pathParameters.userId;
+  console.log("Retrieving earnings for", userId);
   const userData = await getUserData(userId);
   
   if (userData.data == null || userData.data.user == null) {
@@ -54,7 +56,11 @@ exports.handler = async (event) => {
     };
   }));
 
-  const jarEarningsUsd = jarEarnings ? jarEarnings.map(jar => jar.earnedUsd).reduce((total, earnedUsd) => total + earnedUsd) : 0;
+  let jarEarningsUsd = 0;
+  if (jarEarnings && jarEarnings.length > 0) {
+    jarEarningsUsd = jarEarnings.map(jar => jar.earnedUsd).reduce((total, earnedUsd) => total + earnedUsd);
+  }
+
   const wethEarningsUsd = wethRewards * await getEthPrice();
   const scrvEarningsUsd = scrvRewards * await getScrvPrice();;
   const earnings = jarEarningsUsd + wethEarningsUsd + scrvEarningsUsd;
@@ -74,28 +80,16 @@ exports.handler = async (event) => {
 }
 
 const getBtcPrice = async () => {
-  return await getPrice("bitcoin");
+  return await getTokenPrice("bitcoin");
 };
 
 const getEthPrice = async () => {
-  return await getPrice("ethereum");
+  return await getTokenPrice("ethereum");
 }
 
 const getScrvPrice = async () => {
   return await getContractPrice("0xc25a3a3b969415c80451098fa907ec722572917f");
 }
-
-const getContractPrice = async (contract) => {
-  return await fetch(`https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${contract}&vs_currencies=usd`)
-  .then(response => response.json())
-  .then(json => json[contract].usd);
-}
-
-const getPrice = async (token) => {
-  return await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${token}&vs_currencies=usd`)
-    .then(response => response.json())
-    .then(json => json[token].usd);
-};
 
 const getUniswapPrice = async (token) => {
   const query = `

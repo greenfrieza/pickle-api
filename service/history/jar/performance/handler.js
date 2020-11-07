@@ -30,8 +30,7 @@ exports.handler = async (event) => {
   let data = await getAssetData(process.env.ASSET_DATA, asset);
 
   if (asset === "cdai") {
-    const initialRatio = data[0].ratio;
-    const diffRatio = initialRatio - 1;
+    const diffRatio = data[0].ratio - 1;
     data = data.map(d => {
       d.ratio -= diffRatio;
       return d;

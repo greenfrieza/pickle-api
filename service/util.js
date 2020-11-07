@@ -47,3 +47,15 @@ module.exports.getAssetData = async (table, asset, count) => {
   const data = await ddb.query(params).promise();
   return count ? data.Items.reverse() : data.Items;
 };
+
+module.exports.getContractPrice = async (contract) => {
+  return await fetch(`https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${contract}&vs_currencies=usd`)
+  .then(response => response.json())
+  .then(json => json[contract].usd);
+};
+
+module.exports.getTokenPrice = = async (token) => {
+  return await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${token}&vs_currencies=usd`)
+    .then(response => response.json())
+    .then(json => json[token].usd);
+};
