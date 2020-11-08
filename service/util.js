@@ -1,5 +1,6 @@
 const AWS = require("aws-sdk");
 const Web3 = require("web3");
+const fetch = require("node-fetch");
 const web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/701c49f0f48a42aa8672668ea874ba0f"));
 const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: "2012-08-10"});
 
@@ -54,7 +55,7 @@ module.exports.getContractPrice = async (contract) => {
   .then(json => json[contract].usd);
 };
 
-module.exports.getTokenPrice = = async (token) => {
+module.exports.getTokenPrice = async (token) => {
   return await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${token}&vs_currencies=usd`)
     .then(response => response.json())
     .then(json => json[token].usd);

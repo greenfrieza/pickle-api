@@ -25,9 +25,6 @@ exports.handler = async (event) => {
   }
 
   const data = userData.data.user;
-  const scrvRewards = data.sCrvRewards / Math.pow(10, 18);
-  const wethRewards = data.wethRewards / Math.pow(10, 18);
-
   const jarEarnings = await Promise.all(data.jarBalances.map(async data => {
     const asset = jars[data.jar.id].asset;
     const jarRatio = parseInt(data.jar.ratio) / Math.pow(10, 18);
@@ -56,21 +53,27 @@ exports.handler = async (event) => {
     };
   }));
 
+  const wethRewards = data.wethRewards / Math.pow(10, 18);
+  const wethEarningsUsd = wethRewards * await getEthPrice();
+  const wethEarnings = {
+    asset: "WETH",
+    earned: wethRewards,
+    earnedUsd: wethEarningsUsd,
+  };
+  console.log(wethEarnings);
+  jarEarnings.push(wethEarnings);
+
   let jarEarningsUsd = 0;
   if (jarEarnings && jarEarnings.length > 0) {
     jarEarningsUsd = jarEarnings.map(jar => jar.earnedUsd).reduce((total, earnedUsd) => total + earnedUsd);
   }
 
-  const wethEarningsUsd = wethRewards * await getEthPrice();
-  const scrvEarningsUsd = scrvRewards * await getScrvPrice();;
-  const earnings = jarEarningsUsd + wethEarningsUsd + scrvEarningsUsd;
   const user = {
     userId: userId,
-    earnings: earnings,
-    scrvRewards: scrvRewards,
-    wethRewards: wethRewards,
-    jarEarnings: jarEarnings,
+    earnings: jarEarningsUsd,
+    jarEarnings: jarEarnings.filter(jar => jar.earnedUsd > 0),
   };
+  console.log(user);
 
   return {
     statusCode: 200,
