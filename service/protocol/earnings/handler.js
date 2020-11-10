@@ -1,6 +1,6 @@
 const fetch = require("node-fetch");
-const { jars } = require("../../jars");
-const { getTokenPrice, getContractPrice } = require("../util");
+const { jars } = require("../../../jars");
+const { getTokenPrice, getContractPrice } = require("../../util");
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -40,7 +40,8 @@ exports.handler = async (event) => {
     } else if (data.jar.symbol == "pcrvRenWBTC") {
       earnedUsd = earned * await getBtcPrice();
     } else if (data.jar.symbol == "crvPlain3andSUSD") {
-      earnedUsd = earned * await getScrvPrice();
+      const scrvRewards = data.scrvRewards / Math.pow(10, 18);
+      earnedUsd = (scrvRewards + earned) * await getScrvPrice();
     } else {
       earnedUsd = earned;
     }

@@ -1,4 +1,3 @@
-const AWS = require("aws-sdk");
 const { getAssetData } = require("../../util");
 
 exports.handler = async (event) => {

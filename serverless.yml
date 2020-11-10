@@ -67,8 +67,18 @@ functions:
               querystrings:
                 count: false
 
+  get-protocol-value:
+    handler: service/protocol/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 10
+    events:
+      - http:
+          path: /protocol/value
+          method: get
+          cors: true
+
   get-user-earnings:
-    handler: service/earnings/handler.handler
+    handler: service/protocol/earnings/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
     timeout: 10
     events:
