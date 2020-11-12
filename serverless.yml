@@ -6,6 +6,8 @@ plugins:
   - serverless-offline
   - serverless-plugin-warmup
   - serverless-secrets-plugin
+  - serverless-aws-documentation
+  - serverless-export-swagger
 
 custom:
   stage: ${opt:stage, self:provider.stage}
@@ -18,11 +20,24 @@ custom:
       prod: "reward"
   secretsFilePathPrefix: secrets
   secrets: ${file(${self:custom.secretsFilePathPrefix}/secrets.${self:custom.stage}.yml)}
+  documentation:
+    api:
+      info:
+        version: "1.0"
+        title: "Pickle API"
+        description: "Pickle Finance Serverless API"
+        tags:
+          - name: "Protocol"
+            description: "Protocol related services"
+  swaggerDestinations:
+    s3BucketName: "pickle-finance-docs"
+    s3KeyName: "swagger/api.json"
+    acl: public-read
 
 provider:
   name: aws
   runtime: nodejs12.x
-  stage: prod
+  stage: brining
   region: us-west-1
   apiGateway:
     shouldStartNameWithService: true
@@ -35,6 +50,34 @@ provider:
     INFURA_PROJECT_SECRET: ${self:custom.secrets.INFURA_PROJECT_SECRET}
 
 functions:
+  get-protocol-value:
+    handler: service/protocol/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 10
+    events:
+      - http:
+          path: /protocol/value
+          method: get
+          cors: true
+          documentation:
+            summary: "Retrieve value locked in all jars and protocol"
+            description: "Jar values are pulled from indexed chain data with the total value included as the sum of all jars"
+            tags:
+              - "Protocol"
+            methodResponses:
+              - statusCode: "200"
+              - statusCode: "500"
+
+  get-jar-performance:
+    handler: service/history/jar/performance/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 10
+    events:
+      - http:
+          path: /jar/{jarname}/performance
+          method: get
+          cors: true
+
   get-jar-data:
     handler: service/history/jar/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
@@ -49,16 +92,6 @@ functions:
               querystrings:
                 count: false
 
-  get-jar-performance:
-    handler: service/history/jar/performance/handler.handler
-    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
-    timeout: 10
-    events:
-      - http:
-          path: /jar/{jarname}/performance
-          method: get
-          cors: true
-
   get-reward-data:
     handler: service/history/reward/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
@@ -72,16 +105,6 @@ functions:
             parameters:
               querystrings:
                 count: false
-
-  get-protocol-value:
-    handler: service/protocol/handler.handler
-    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
-    timeout: 10
-    events:
-      - http:
-          path: /protocol/value
-          method: get
-          cors: true
 
   get-user-earnings:
     handler: service/protocol/earnings/handler.handler

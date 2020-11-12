@@ -12,6 +12,8 @@
   },
   "devDependencies": {
     "serverless-offline": "^6.8.0",
-    "serverless-secrets-plugin": "^0.1.0"
+    "serverless-secrets-plugin": "^0.1.0",
+    "serverless-aws-documentation": "^1.1.0",
+    "serverless-export-swagger": "^2.0.0"
   }
 }
