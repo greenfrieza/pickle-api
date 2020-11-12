@@ -1,8 +1,8 @@
 const AWS = require("aws-sdk");
 const Web3 = require("web3");
 const fetch = require("node-fetch");
-const web3 = new Web3(new Web3.providers.HttpProvider("https://mainnet.infura.io/v3/701c49f0f48a42aa8672668ea874ba0f"));
 const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: "2012-08-10"});
+const web3 = new Web3(new Web3.providers.HttpProvider(`https://:${process.env.INFURA_PROJECT_SECRET}@mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`));
 
 module.exports.getBlock = async (blockNumber) => await web3.eth.getBlock(blockNumber);
 
