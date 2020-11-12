@@ -1,9 +1,11 @@
+---
 service: pickle-v2
 frameworkVersion: '2'
 
 plugins:
   - serverless-offline
   - serverless-plugin-warmup
+  - serverless-secrets-plugin
 
 custom:
   stage: ${opt:stage, self:provider.stage}
@@ -14,6 +16,8 @@ custom:
     REWARD_DATA:
       brining: "brining-reward"
       prod: "reward"
+  secretsFilePathPrefix: secrets
+  secrets: ${file(${self:custom.secretsFilePathPrefix}/secrets.${self:custom.stage}.yml)}
 
 provider:
   name: aws
@@ -27,6 +31,8 @@ provider:
     UNISWAP: "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
     ASSET_DATA: ${self:custom.table.ASSET_DATA.${self:custom.stage}}
     REWARD_DATA: ${self:custom.table.REWARD_DATA.${self:custom.stage}}
+    INFURA_PROJECT_ID: ${self:custom.secrets.INFURA_PROJECT_ID}
+    INFURA_PROJECT_SECRET: ${self:custom.secrets.INFURA_PROJECT_SECRET}
 
 functions:
   get-jar-data:
