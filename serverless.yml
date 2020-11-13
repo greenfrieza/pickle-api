@@ -11,13 +11,6 @@ plugins:
 
 custom:
   stage: ${opt:stage, self:provider.stage}
-  table:
-    ASSET_DATA:
-      brining: "brining-asset"
-      prod: "asset"
-    REWARD_DATA:
-      brining: "brining-reward"
-      prod: "reward"
   secretsFilePathPrefix: secrets
   secrets: ${file(${self:custom.secretsFilePathPrefix}/secrets.${self:custom.stage}.yml)}
   documentation:
@@ -28,11 +21,24 @@ custom:
         description: "Pickle Finance Serverless API"
         tags:
           - name: "Protocol"
-            description: "Protocol related services"
+            description: "Protocol related API"
+          - name: "Chart"
+            description: "Chart related API"
+  bucket:
+    SWAGGER:
+      brining: "brining-docs"
+      prod: "pickle-finance-docs"
   swaggerDestinations:
-    s3BucketName: "pickle-finance-docs"
-    s3KeyName: "swagger/api.json"
+    s3BucketName: ${self:custom.bucket.SWAGGER.${self:custom.stage}}
+    s3KeyName: "swagger/swagger.json"
     acl: public-read
+  table:
+    ASSET_DATA:
+      brining: "brining-asset"
+      prod: "asset"
+    REWARD_DATA:
+      brining: "brining-reward"
+      prod: "reward"
 
 provider:
   name: aws
@@ -77,6 +83,18 @@ functions:
           path: /jar/{jarname}/performance
           method: get
           cors: true
+          documentation:
+            summary: "Chart data for historic jar performance and estimated ROI per jar"
+            description: "Return an array of data point objects with coordinate values corresponding to jar ratio coupled with multiple ROI values for sampled periods"
+            pathParams:
+              - name: "jarname"
+                description: "Pickle jar name"
+                required: true
+            tags:
+              - "Chart"
+            methodResponses:
+              - statusCode: "200"
+              - statusCode: "500"
 
   get-jar-data:
     handler: service/history/jar/handler.handler
@@ -91,6 +109,22 @@ functions:
             parameters:
               querystrings:
                 count: false
+          documentation:
+            summary: "Chart data for historic jar assets under management"
+            description: "Return an array of data point objects with coordinate values corresponding to jar asset USD valuation"
+            pathParams:
+              - name: "jarname"
+                description: "Pickle jar name"
+                required: true
+            queryParams:
+              - name: "count"
+                description: "Number of data points to limit response"
+                required: false
+            tags:
+              - "Chart"
+            methodResponses:
+              - statusCode: "200"
+              - statusCode: "500"
 
   get-reward-data:
     handler: service/history/reward/handler.handler
@@ -105,6 +139,22 @@ functions:
             parameters:
               querystrings:
                 count: false
+          documentation:
+            summary: "Chart data for historic staking percentages"
+            description: "Return an array of data point objects with coordinate values corresponding to staked PICKLE"
+            pathParams:
+              - name: "token"
+                description: "Pickle reward token name"
+                required: true
+            queryParams:
+              - name: "count"
+                description: "Number of data points to limit response"
+                required: false
+            tags:
+              - "Chart"
+            methodResponses:
+              - statusCode: "200"
+              - statusCode: "500"
 
   get-user-earnings:
     handler: service/protocol/earnings/handler.handler
@@ -115,6 +165,18 @@ functions:
           path: /earnings/{userId}
           method: get
           cors: true
+          documentation:
+            summary: "Get earnings for a given ethereum address"
+            description: "Get the token based earnings for all jars and their current USD valuation"
+            pathParams:
+              - name: "userId"
+                description: "Ethereum address"
+                required: true
+            tags:
+              - "Protocol"
+            methodResponses:
+              - statusCode: "200"
+              - statusCode: "500"
 
   index-staking:
     handler: service/index/handler.handler
