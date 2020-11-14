@@ -15,6 +15,19 @@ This document makes no assurances it is accurate, a valid swagger doc, or otherw
 Production documentation will be curated with manual post processing of the Swagger JSON to ensure readibility.
 This document will capture the current production deployment of the API with guaranteed testable sandbox.
 
+### Jar Options 
+
+Jar path parameters are case sensitive and based on existing jar contracts.
+
+- wbtc-eth
+- dai-eth
+- usdc-eth
+- usdt-eth
+- cdai
+- 3poolcrv
+- scrv
+- renbtccrv
+
 ## Contributing
 
 Anyone is free to open a pull request to contribute to the API.

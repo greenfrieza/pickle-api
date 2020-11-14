@@ -1,6 +1,7 @@
 const fetch = require("node-fetch");
 const { jars } = require("../../../jars");
-const { getTokenPrice, getContractPrice } = require("../../util");
+const { getContractPrice, getUniswapPrice } = require("../../util");
+const { WETH, SCRV, TCRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("../../constants");
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +25,8 @@ exports.handler = async (event) => {
   }
 
   const data = userData.data.user;
-  const jarEarnings = await Promise.all(data.jarBalances.map(async data => {
+  const prices = await getPrices();
+  const jarEarnings = data.jarBalances.map(data => {
     const asset = jars[data.jar.id].asset;
     const jarRatio = parseInt(data.jar.ratio) / Math.pow(10, 18);
     const netShareDeposit = parseInt(data.netShareDeposit);
@@ -32,29 +34,17 @@ exports.handler = async (event) => {
     const grossWithdraw = parseInt(data.grossWithdraw);
     const jarTokens = jarRatio * netShareDeposit;
     const earned = (jarTokens - grossDeposit + grossWithdraw) / Math.pow(10, 18);
-
-    let earnedUsd;
-    if (data.jar.symbol == "pUNI-V2") {
-      earnedUsd = earned * await getUniswapPrice(data.jar.token.id);
-    } else if (data.jar.symbol == "pcrvRenWBTC") {
-      earnedUsd = earned * await getBtcPrice();
-    } else if (data.jar.symbol == "crvPlain3andSUSD") {
-      const scrvRewards = data.scrvRewards / Math.pow(10, 18);
-      earnedUsd = earned * await getScrvPrice();
-    } else {
-      earnedUsd = earned;
-    }
-
+    const earnedUsd = getUsdValue(data.jar.token.id, earned, prices);
     return {
       id: data.jar.id,
       asset: asset,
       earned: earned,
       earnedUsd: earnedUsd,
     };
-  }));
+  });
 
   const wethRewards = data.wethRewards / Math.pow(10, 18);
-  const wethEarningsUsd = wethRewards * await getEthPrice();
+  const wethEarningsUsd = wethRewards * prices.ethereum;
   const wethEarnings = {
     asset: "WETH",
     earned: wethRewards,
@@ -72,7 +62,6 @@ exports.handler = async (event) => {
     earnings: jarEarningsUsd,
     jarEarnings: jarEarnings.filter(jar => jar.earnedUsd > 0),
   };
-  console.log(user);
 
   return {
     statusCode: 200,
@@ -81,31 +70,62 @@ exports.handler = async (event) => {
   };
 }
 
+const getUsdValue = (asset, tokens, prices) => {
+  let earnedUsd;
+  switch (asset) {
+    case SCRV:
+      earnedUsd = tokens * prices.scrv;
+      break;
+    case TCRV:
+      earnedUsd = tokens * prices.tcrv;
+      break;
+    case DAI:
+      earnedUsd = tokens * prices.dai;
+      break;
+    case UNI_DAI:
+      earnedUsd = tokens * prices.unidai;
+      break;
+    case UNI_USDC:
+      earnedUsd = tokens * prices.uniusdc;
+      break;
+    case UNI_USDT:
+      earnedUsd = tokens * prices.uniusdt;
+      break;
+    case UNI_WBTC:
+      earnedUsd = tokens * prices.uniwbtc;
+      break;
+    case RENBTC:
+      earnedUsd = tokens * prices.renbtccrv;
+      break;
+    default:
+      earnedUsd = 0;
+  }
+  return earnedUsd;
+};
+
 const getPrices = async () => {
-  const prices = [
-    getTokenPrice("bitcoin"),
-    getTokenPrice("ethereum"),
-    getContractPrice("0xc25a3a3b969415c80451098fa907ec722572917f"), // scrv
-
-  ];
-}
-
-const getUniswapPrice = async (token) => {
-  const query = `
-    {
-      pair(id: "${token}") {
-        reserveUSD
-        totalSupply
-      }
-    }
-  `;
-  const queryResult = await fetch(process.env.UNISWAP, {
-    method: "POST",
-    body: JSON.stringify({query})
-  }).then(response => response.json());
-  const reserveUSD = queryResult.data.pair.reserveUSD;
-  const liquidityPrice = (1 / queryResult.data.pair.totalSupply);
-  return reserveUSD * liquidityPrice;
+  const prices = await Promise.all([
+    getContractPrice(WETH),
+    getContractPrice(SCRV),
+    getContractPrice(TCRV),
+    getContractPrice(RENBTC),
+    getContractPrice(DAI),
+    getUniswapPrice(UNI_DAI),
+    getUniswapPrice(UNI_USDC),
+    getUniswapPrice(UNI_USDT),
+    getUniswapPrice(UNI_WBTC),
+  ]);
+  return {
+    ethereum: prices[0],
+    scrv: prices[1],
+    tcrv: prices[2],
+    renbtccrv: prices[3],
+    dai: prices[4],
+    unidai: prices[5],
+    uniusdc: prices[6],
+    uniusdt: prices[7],
+    uniwbtc: prices[8],
+  };
 };
 
 const getUserData = async (userId) => {
