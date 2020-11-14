@@ -99,7 +99,7 @@ const getFarmPerformance = async (asset) => {
   }
 
   // collect farm data
-  const farmAlloc = farmInfo.allocPoint / 4000; // masterChef.totalAllocPoint;
+  const farmAlloc = farmInfo.allocPoint / masterChef.totalAllocPoint;
   const rewards = masterChef.rewardsPerBlock / Math.pow(10, 18);
   const pickleEmission = picklePrice * farmAlloc * rewards;
   const yearlyEmission = pickleEmission * 276 * 24 * 365;
@@ -110,4 +110,4 @@ const getFarmPerformance = async (asset) => {
   const poolValue = await getUsdValue(jars[assetId].token, balance) * ratio;
 
   return (yearlyEmission / poolValue) * 100;
-}
+};
