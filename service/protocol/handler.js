@@ -13,7 +13,7 @@ exports.handler = async (event) => {
     const asset = jars[key].asset.toLowerCase();
     const assetData = await getAssetData(process.env.ASSET_DATA, asset, 1);
     const value = parseFloat(parseFloat(assetData[0].value).toFixed(2));
-    updatedAt = Math.max(updatedAt, parseInt(assetData[0].timestamp));
+    updatedAt = Math.max(updatedAt, assetData[0].timestamp);
     jarValues[asset] = value;
     totalValue += value;
   }

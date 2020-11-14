@@ -74,18 +74,62 @@ functions:
               - statusCode: "200"
               - statusCode: "500"
 
-  get-jar-performance:
-    handler: service/history/jar/performance/handler.handler
+  get-protocol-earnings:
+    handler: service/protocol/earnings/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
     timeout: 10
     events:
       - http:
-          path: /jar/{jarname}/performance
+          path: /protocol/earnings/{userId}
           method: get
           cors: true
           documentation:
-            summary: "Chart data for historic jar performance and estimated ROI per jar"
-            description: "Return an array of data point objects with coordinate values corresponding to jar ratio coupled with multiple ROI values for sampled periods"
+            summary: "Get earnings for a given ethereum address"
+            description: "Get the token based earnings for all jars and their current USD valuation"
+            pathParams:
+              - name: "userId"
+                description: "Ethereum address"
+                required: true
+            tags:
+              - "Protocol"
+            methodResponses:
+              - statusCode: "200"
+              - statusCode: "500"
+
+  get-jar-performance:
+    handler: service/protocol/performance/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 10
+    events:
+      - http:
+          path: /protocol/jar/{jarname}/performance
+          method: get
+          cors: true
+          documentation:
+            summary: "Estimated ROI per jar"
+            description: "Return multiple ROI values for sampled periods"
+            pathParams:
+              - name: "jarname"
+                description: "Pickle jar name"
+                required: true
+            tags:
+              - "Protocol"
+            methodResponses:
+              - statusCode: "200"
+              - statusCode: "500"
+
+  get-jar-performance-chart:
+    handler: service/chart/jar/performance/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 10
+    events:
+      - http:
+          path: /chart/jar/{jarname}/performance
+          method: get
+          cors: true
+          documentation:
+            summary: "Chart data for historic jar performance"
+            description: "Return an array of data point objects with coordinate values corresponding to jar ratio"
             pathParams:
               - name: "jarname"
                 description: "Pickle jar name"
@@ -96,13 +140,13 @@ functions:
               - statusCode: "200"
               - statusCode: "500"
 
-  get-jar-data:
-    handler: service/history/jar/handler.handler
+  get-jar-chart:
+    handler: service/chart/jar/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
     timeout: 10
     events:
       - http:
-          path: /jar/{jarname}
+          path: /chart/jar/{jarname}
           method: get
           cors: true
           request:
@@ -127,12 +171,12 @@ functions:
               - statusCode: "500"
 
   get-reward-data:
-    handler: service/history/reward/handler.handler
+    handler: service/chart/reward/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
     timeout: 10
     events:
       - http:
-          path: /reward/{token}
+          path: /chart/reward/{token}
           method: get
           cors: true
           request:
@@ -152,28 +196,6 @@ functions:
                 required: false
             tags:
               - "Chart"
-            methodResponses:
-              - statusCode: "200"
-              - statusCode: "500"
-
-  get-user-earnings:
-    handler: service/protocol/earnings/handler.handler
-    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
-    timeout: 10
-    events:
-      - http:
-          path: /earnings/{userId}
-          method: get
-          cors: true
-          documentation:
-            summary: "Get earnings for a given ethereum address"
-            description: "Get the token based earnings for all jars and their current USD valuation"
-            pathParams:
-              - name: "userId"
-                description: "Ethereum address"
-                required: true
-            tags:
-              - "Protocol"
             methodResponses:
               - statusCode: "200"
               - statusCode: "500"
