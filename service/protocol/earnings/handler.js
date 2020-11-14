@@ -14,7 +14,6 @@ exports.handler = async (event) => {
   }
 
   const userId = event.pathParameters.userId;
-  console.log("Retrieving earnings for", userId);
   const userData = await getUserData(userId);
   
   if (userData.data == null || userData.data.user == null) {
@@ -41,7 +40,7 @@ exports.handler = async (event) => {
       earnedUsd = earned * await getBtcPrice();
     } else if (data.jar.symbol == "crvPlain3andSUSD") {
       const scrvRewards = data.scrvRewards / Math.pow(10, 18);
-      earnedUsd = (scrvRewards + earned) * await getScrvPrice();
+      earnedUsd = earned * await getScrvPrice();
     } else {
       earnedUsd = earned;
     }
@@ -61,7 +60,6 @@ exports.handler = async (event) => {
     earned: wethRewards,
     earnedUsd: wethEarningsUsd,
   };
-  console.log(wethEarnings);
   jarEarnings.push(wethEarnings);
 
   let jarEarningsUsd = 0;
@@ -83,16 +81,13 @@ exports.handler = async (event) => {
   };
 }
 
-const getBtcPrice = async () => {
-  return await getTokenPrice("bitcoin");
-};
+const getPrices = async () => {
+  const prices = [
+    getTokenPrice("bitcoin"),
+    getTokenPrice("ethereum"),
+    getContractPrice("0xc25a3a3b969415c80451098fa907ec722572917f"), // scrv
 
-const getEthPrice = async () => {
-  return await getTokenPrice("ethereum");
-}
-
-const getScrvPrice = async () => {
-  return await getContractPrice("0xc25a3a3b969415c80451098fa907ec722572917f");
+  ];
 }
 
 const getUniswapPrice = async (token) => {
