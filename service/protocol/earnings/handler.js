@@ -1,7 +1,7 @@
 const fetch = require("node-fetch");
 const { jars } = require("../../../jars");
 const { getContractPrice, getUniswapPrice } = require("../../util");
-const { WETH, SCRV, TCRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("../../constants");
+const { WETH, SCRV, THREE_CRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("../../constants");
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -76,7 +76,7 @@ const getUsdValue = (asset, tokens, prices) => {
     case SCRV:
       earnedUsd = tokens * prices.scrv;
       break;
-    case TCRV:
+    case THREE_CRV:
       earnedUsd = tokens * prices.tcrv;
       break;
     case DAI:

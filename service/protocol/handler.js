@@ -1,5 +1,5 @@
-const { jars } = require("../../jars");
-const { UNI_PICKLE } = require("../constants");
+const { jars } = require("../jars");
+const { UNI_PICKLE } = require("../util/constants");
 const { getAssetData, getUniswapPair } = require("../util");
 
 const formatFloat = (value) => parseFloat(parseFloat(value).toFixed(2));

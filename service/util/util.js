@@ -1,25 +1,23 @@
 const AWS = require("aws-sdk");
 const Web3 = require("web3");
 const fetch = require("node-fetch");
-const { SCRV, TCRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("./constants");
+const { SCRV, THREE_CRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("./constants");
 const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: "2012-08-10"});
 const web3 = new Web3(new Web3.providers.HttpProvider(`https://:${process.env.INFURA_PROJECT_SECRET}@mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`));
 
-module.exports.getBlock = async (blockNumber) => await web3.eth.getBlock(blockNumber);
-
-module.exports.getIndexedBlock = async (table, asset, createdBlock) => {
-  const params = {
-    TableName : table,
-    KeyConditionExpression: "asset = :asset",
-    ExpressionAttributeValues: {
-        ":asset": asset
+module.exports.respond = (statusCode, body) => {
+  return {
+    statusCode: statusCode,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "OPTIONS,GET",
+      "Access-Control-Allow-Headers": "Content-Type",
     },
-    ScanIndexForward: false,
-    Limit: 1,
+    ...body && { body: JSON.stringify(body) },
   };
-  let result = await ddb.query(params).promise();
-  return result.Items.length > 0 ? result.Items[0].height : createdBlock;
 };
+
+module.exports.getBlock = async (blockNumber) => await web3.eth.getBlock(blockNumber);
 
 module.exports.saveItem = async (table, item) => {
   let params = {
@@ -135,8 +133,8 @@ module.exports.getUsdValue = async (asset, balance) => {
     case SCRV:
       assetPrice = await this.getContractPrice(SCRV);
       break;
-    case TCRV:
-      assetPrice = await this.getContractPrice(TCRV);
+    case THREE_CRV:
+      assetPrice = await this.getContractPrice(THREE_CRV);
       break;
     case RENBTC:
       assetPrice = await this.getContractPrice(RENBTC);

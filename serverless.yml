@@ -206,14 +206,6 @@ functions:
     timeout: 300
     events:
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-staking-scrv
-          description: "index historical data for pickle rewards contract scrv token"
-          rate: rate(5 minutes)
-          input:
-            contract: "0xd86f33388bf0bfdf0ccb1ecb4a48a1579504dc0a"
-            createdBlock: 10987327
-            asset: "scrv"
-      - schedule:
           name: ${self:service}-${self:custom.stage}-index-staking-weth
           description: "index historical data for pickle rewards contract weth token"
           rate: rate(5 minutes)
@@ -222,8 +214,8 @@ functions:
             createdBlock: 11147661
             asset: "weth"
 
-  index-curve-stable:
-    handler: service/index/curve/stable/handler.handler
+  index-curve:
+    handler: service/index/curve/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
     timeout: 300
     events:
@@ -245,18 +237,12 @@ functions:
             asset: "scrv"
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-compound-cdai
-          description: "index historical data for pickle curve cdai jar"
+          description: "index historical data for pickle compound cdai jar"
           rate: rate(5 minutes)
           input:
             contract: "0x6949bb624e8e8a90f87cd2058139fcd77d2f3f87"
             createdBlock: 11044218
             asset: "cdai"
-
-  index-curve-btc:
-    handler: service/index/curve/btc/handler.handler
-    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
-    timeout: 300
-    events:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-curve-renbtc
           description: "index historical data for pickle curve renbtc jar"
