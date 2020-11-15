@@ -1,5 +1,5 @@
 const fetch = require("node-fetch");
-const { getBlock, getIndexedBlock, saveItem } = require("../../util");
+const { getBlock, getIndexedBlock, saveItem, getJar } = require("../../util");
 
 const THIRTY_MIN_BLOCKS = parseInt(30 * 60 / 13);
 exports.handler =  async (event) => {
@@ -8,7 +8,7 @@ exports.handler =  async (event) => {
   console.log(`Index ${asset} at height: ${block}`);
 
   while (true) {
-    const jar = await queryJar(contract, block);
+    const jar = await getJar(contract, block);
 
     if (jar.errors != undefined && jar.errors != null) {
       break;
@@ -42,26 +42,6 @@ exports.handler =  async (event) => {
   }
 
   return 200;
-};
-
-const queryJar = async (contract, block) => {
-  const query = `
-    {
-      jar(id: "${contract}", block: {number: ${block}}) {
-        token {
-          id
-        }
-        balance
-        ratio
-        totalSupply
-      }
-    }
-  `;
-  const queryResult = await fetch(process.env.PICKLE, {
-    method: "POST",
-    body: JSON.stringify({query})
-  });
-  return queryResult.json();
 };
 
 const getBalance = async (token, block, supply) => {

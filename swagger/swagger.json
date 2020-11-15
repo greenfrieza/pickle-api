@@ -1,1 +1,176 @@
-{"swagger":"2.0","info":{"description":"Pickle Finance Serverless API","version":"2020-11-13T05:18:20Z","title":"brining-pickle-v2"},"host":"thzdn4atqa.execute-api.us-west-1.amazonaws.com","basePath":"/brining","schemes":["https"],"paths":{"/earnings/{userId}":{"get":{"tags":["Protocol"],"summary":"Get earnings for a given ethereum address","description":"Get the token based earnings for all jars and their current USD valuation","parameters":[{"name":"userId","in":"path","description":"Ethereum address","required":true,"type":"string"}],"responses":{"200":{"description":"200 response"},"500":{"description":"500 response"}}}},"/jar/{jarname}":{"get":{"tags":["Chart"],"summary":"Chart data for historic jar assets under management","description":"Return an array of data point objects with coordinate values corresponding to jar asset USD valuation","parameters":[{"name":"jarname","in":"path","description":"Pickle jar name","required":true,"type":"string"},{"name":"count","in":"query","description":"Number of data points to limit response","required":false,"type":"string"}],"responses":{"200":{"description":"200 response"},"500":{"description":"500 response"}}}},"/jar/{jarname}/performance":{"get":{"tags":["Chart"],"summary":"Chart data for historic jar performance and estimated ROI per jar","description":"Return an array of data point objects with coordinate values corresponding to jar ratio coupled with multiple ROI values for sampled periods","parameters":[{"name":"jarname","in":"path","description":"Pickle jar name","required":true,"type":"string"}],"responses":{"200":{"description":"200 response"},"500":{"description":"500 response"}}}},"/protocol/value":{"get":{"tags":["Protocol"],"summary":"Retrieve value locked in all jars and protocol","description":"Jar values are pulled from indexed chain data with the total value included as the sum of all jars","responses":{"200":{"description":"200 response"},"500":{"description":"500 response"}}}},"/reward/{token}":{"get":{"tags":["Chart"],"summary":"Chart data for historic staking percentages","description":"Return an array of data point objects with coordinate values corresponding to staked PICKLE","parameters":[{"name":"token","in":"path","description":"Pickle reward token name","required":true,"type":"string"},{"name":"count","in":"query","description":"Number of data points to limit response","required":false,"type":"string"}],"responses":{"200":{"description":"200 response"},"500":{"description":"500 response"}}}}}}
+{
+  "swagger":"2.0",
+  "info":{
+    "description":"Pickle Finance Serverless API",
+    "version":"1.0",
+    "title":"Pickle API"
+  },
+  "host":"api.pickle-jar.info",
+  "basePath":"/",
+  "schemes":[
+    "https"
+  ],
+  "paths":{
+    "/chart/jar/{jarname}":{
+      "get":{
+        "tags":[
+          "Chart"
+        ],
+        "summary":"Chart data for historic jar assets under management",
+        "description":"Return an array of data point objects with coordinate values corresponding to jar asset USD valuation",
+        "parameters":[
+          {
+            "name":"jarname",
+            "in":"path",
+            "description":"Pickle jar name",
+            "required":true,
+            "type":"string"
+          },
+          {
+            "name":"count",
+            "in":"query",
+            "description":"Number of data points to limit response",
+            "required":false,
+            "type":"string"
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"200 response"
+          },
+          "500":{
+            "description":"500 response"
+          }
+        }
+      }
+    },
+    "/chart/jar/{jarname}/performance":{
+      "get":{
+        "tags":[
+          "Chart"
+        ],
+        "summary":"Chart data for historic jar performance",
+        "description":"Return an array of data point objects with coordinate values corresponding to jar ratio",
+        "parameters":[
+          {
+            "name":"jarname",
+            "in":"path",
+            "description":"Pickle jar name",
+            "required":true,
+            "type":"string"
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"200 response"
+          },
+          "500":{
+            "description":"500 response"
+          }
+        }
+      }
+    },
+    "/chart/reward/{token}":{
+      "get":{
+        "tags":[
+          "Chart"
+        ],
+        "summary":"Chart data for historic staking percentages",
+        "description":"Return an array of data point objects with coordinate values corresponding to staked PICKLE",
+        "parameters":[
+          {
+            "name":"token",
+            "in":"path",
+            "description":"Pickle reward token name",
+            "required":true,
+            "type":"string"
+          },
+          {
+            "name":"count",
+            "in":"query",
+            "description":"Number of data points to limit response",
+            "required":false,
+            "type":"string"
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"200 response"
+          },
+          "500":{
+            "description":"500 response"
+          }
+        }
+      }
+    },
+    "/protocol/earnings/{userId}":{
+      "get":{
+        "tags":[
+          "Protocol"
+        ],
+        "summary":"Get earnings for a given ethereum address",
+        "description":"Get the token based earnings for all jars and their current USD valuation",
+        "parameters":[
+          {
+            "name":"userId",
+            "in":"path",
+            "description":"Ethereum address",
+            "required":true,
+            "type":"string"
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"200 response"
+          },
+          "500":{
+            "description":"500 response"
+          }
+        }
+      }
+    },
+    "/protocol/jar/{jarname}/performance":{
+      "get":{
+        "tags":[
+          "Protocol"
+        ],
+        "summary":"Estimated ROI per jar",
+        "description":"Return multiple ROI values for sampled periods",
+        "parameters":[
+          {
+            "name":"jarname",
+            "in":"path",
+            "description":"Pickle jar name",
+            "required":true,
+            "type":"string"
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"200 response"
+          },
+          "500":{
+            "description":"500 response"
+          }
+        }
+      }
+    },
+    "/protocol/value":{
+      "get":{
+        "tags":[
+          "Protocol"
+        ],
+        "summary":"Retrieve value locked in all jars and protocol",
+        "description":"Jar values are pulled from indexed chain data with the total value included as the sum of all jars",
+        "responses":{
+          "200":{
+            "description":"200 response"
+          },
+          "500":{
+            "description":"500 response"
+          }
+        }
+      }
+    }
+  }
+}

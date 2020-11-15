@@ -11,3 +11,4 @@ module.exports.UNI_WBTC = "0xbb2b8038a1640196fbe3e38816f3e67cba72d940";
 module.exports.UNI_DAI = "0xa478c2975ab1ea89e8196811f51a7b7ade33eb11";
 module.exports.UNI_USDC = "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc";
 module.exports.UNI_USDT = "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852";
+module.exports.UNI_PICKLE = "0xdc98556ce24f007a5ef6dc1ce96322d65832a819";
