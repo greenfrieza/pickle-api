@@ -1,7 +1,7 @@
 const AWS = require("aws-sdk");
 const Web3 = require("web3");
 const fetch = require("node-fetch");
-const { WETH, SCRV, TCRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("./constants");
+const { SCRV, TCRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("./constants");
 const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: "2012-08-10"});
 const web3 = new Web3(new Web3.providers.HttpProvider(`https://:${process.env.INFURA_PROJECT_SECRET}@mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`));
 
@@ -62,21 +62,23 @@ module.exports.getTokenPrice = async (token) => {
     .then(json => json[token].usd);
 };
 
-module.exports.getJar = async (contract) => {
+module.exports.getJar = async (contract, block) => {
   let query = `
     {
-      jar(id: "${contract}") {
+      jar(id: "${contract}"${block ? `, block: {number: ${block}}`: ""}) {
+        token {
+          id
+        }
         balance
         ratio
         totalSupply
       }
     }
   `;
-  const queryResult = await fetch(process.env.PICKLE, {
+  return await fetch(process.env.PICKLE, {
     method: "POST",
     body: JSON.stringify({query})
-  });
-  return queryResult.json();
+  }).then(response => response.json());
 };
 
 module.exports.getMasterChef = async () => {
@@ -99,28 +101,31 @@ module.exports.getMasterChef = async () => {
       }
     }
   `;
-  const queryResult = await fetch(process.env.PICKLE, {
+  return await fetch(process.env.PICKLE, {
     method: "POST",
     body: JSON.stringify({query})
-  });
-  return queryResult.json();
+  }).then(response => response.json());
 };
 
-module.exports.getUniswapPrice = async (token) => {
+module.exports.getUniswapPair = async (token, block) => {
   const query = `
     {
-      pair(id: "${token}") {
+      pair(id: "${token}"${block ? `, block: {number: ${block}}`: ""}) {
         reserveUSD
         totalSupply
       }
     }
   `;
-  const queryResult = await fetch(process.env.UNISWAP, {
+  return await fetch(process.env.UNISWAP, {
     method: "POST",
     body: JSON.stringify({query})
   }).then(response => response.json());
-  const reserveUSD = queryResult.data.pair.reserveUSD;
-  const liquidityPrice = (1 / queryResult.data.pair.totalSupply);
+};
+
+module.exports.getUniswapPrice = async (token) => {
+  const uniswapPair = await this.getUniswapPair(token);
+  const reserveUSD = uniswapPair.data.pair.reserveUSD;
+  const liquidityPrice = (1 / uniswapPair.data.pair.totalSupply);
   return reserveUSD * liquidityPrice;
 };
 
