@@ -1,6 +1,6 @@
 const { jars } = require("../jars");
 const { UNI_PICKLE } = require("../util/constants");
-const { getAssetData, getUniswapPair } = require("../util/util");
+const { getAssetData, getUniswapPair, respond } = require("../util/util");
 
 const formatFloat = (value) => parseFloat(parseFloat(value).toFixed(2));
 exports.handler = async (event) => {
@@ -27,13 +27,5 @@ exports.handler = async (event) => {
   assetValues.totalValue = jarValue + assetValues.liquidity;
   assetValues.updatedAt = updatedAt;
 
-  return {
-    statusCode: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "OPTIONS,GET",
-      "Access-Control-Allow-Headers": "Content-Type"
-    },
-    body: JSON.stringify(assetValues),
-  };
+  return respond(200, assetValues);
 }

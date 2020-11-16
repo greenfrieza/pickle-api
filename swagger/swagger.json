@@ -2,8 +2,8 @@
   "swagger":"2.0",
   "info":{
     "description":"Pickle Finance Serverless API",
-    "version":"1.0",
-    "title":"Pickle API"
+    "version":"Pickle API",
+    "title":"brining-pickle-v2"
   },
   "host":"api.pickle-jar.info",
   "basePath":"/",
@@ -119,6 +119,23 @@
             "type":"string"
           }
         ],
+        "responses":{
+          "200":{
+            "description":"200 response"
+          },
+          "500":{
+            "description":"500 response"
+          }
+        }
+      }
+    },
+    "/protocol/farm":{
+      "get":{
+        "tags":[
+          "Protocol"
+        ],
+        "summary":"Get active PickleChef farms",
+        "description":"Get the current active Pickle farms emission allocation and APY",
         "responses":{
           "200":{
             "description":"200 response"

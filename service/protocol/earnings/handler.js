@@ -1,13 +1,7 @@
 const fetch = require("node-fetch");
 const { jars } = require("../../jars");
-const { getContractPrice, getUniswapPrice } = require("../../util/util");
+const { getContractPrice, getUniswapPrice, respond } = require("../../util/util");
 const { WETH, SCRV, THREE_CRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("../../util/constants");
-
-const headers = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "OPTIONS,GET",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
 
 exports.handler = async (event) => {
   if (event.source === "serverless-plugin-warmup") {
@@ -63,11 +57,7 @@ exports.handler = async (event) => {
     jarEarnings: jarEarnings.filter(jar => jar.earnedUsd > 0),
   };
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify(user),
-    headers: headers,
-  };
+  return respond(200, user);
 }
 
 const getUsdValue = (asset, tokens, prices) => {

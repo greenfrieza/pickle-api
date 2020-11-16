@@ -107,7 +107,7 @@ functions:
           cors: true
           documentation:
             summary: "Get active PickleChef farms"
-            description: "Get the current active Pickle farms emission allocation and APY"
+            description: "Get the current active Pickle farms emission allocation"
             tags:
               - "Protocol"
             methodResponses:
@@ -224,7 +224,7 @@ functions:
     timeout: 300
     events:
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-staking-weth2
+          name: ${self:service}-${self:custom.stage}-index-staking-weth
           description: "index historical data for pickle rewards contract weth token"
           rate: rate(5 minutes)
           input:
@@ -238,7 +238,7 @@ functions:
     timeout: 300
     events:
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-curve-3pool2
+          name: ${self:service}-${self:custom.stage}-index-curve-3pool
           description: "index historical data for pickle curve 3pool jar"
           rate: rate(5 minutes)
           input:
@@ -246,7 +246,7 @@ functions:
             createdBlock: 11010885
             asset: "3poolcrv"
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-curve-scrv2
+          name: ${self:service}-${self:custom.stage}-index-curve-scrv
           description: "index historical data for pickle curve scrv jar"
           rate: rate(5 minutes)
           input:
@@ -254,7 +254,7 @@ functions:
             createdBlock: 10973000
             asset: "scrv"
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-compound-cdai2
+          name: ${self:service}-${self:custom.stage}-index-compound-cdai
           description: "index historical data for pickle compound cdai jar"
           rate: rate(5 minutes)
           input:
@@ -262,7 +262,7 @@ functions:
             createdBlock: 11044218
             asset: "cdai"
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-curve-renbtc2
+          name: ${self:service}-${self:custom.stage}-index-curve-renbtc
           description: "index historical data for pickle curve renbtc jar"
           rate: rate(5 minutes)
           input:
@@ -276,7 +276,7 @@ functions:
     timeout: 300
     events:
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-uniswap-wbtc-eth2
+          name: ${self:service}-${self:custom.stage}-index-uniswap-wbtc-eth
           description: "index historical data for pickle uniswap wbtc-eth jar"
           rate: rate(5 minutes)
           input:
@@ -284,7 +284,7 @@ functions:
             createdBlock: 11010902
             asset: "wbtc-eth"
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-uniswap-usdc-eth2
+          name: ${self:service}-${self:custom.stage}-index-uniswap-usdc-eth
           description: "index historical data for pickle uniswap usdc-eth jar"
           rate: rate(5 minutes)
           input:
@@ -292,7 +292,7 @@ functions:
             createdBlock: 10960599
             asset: "usdc-eth"
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-uniswap-usdt-eth2
+          name: ${self:service}-${self:custom.stage}-index-uniswap-usdt-eth
           description: "index historical data for pickle uniswap usdt-eth jar"
           rate: rate(5 minutes)
           input:
@@ -300,7 +300,7 @@ functions:
             createdBlock: 10960612
             asset: "usdt-eth"
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-uniswap-dai-eth2
+          name: ${self:service}-${self:custom.stage}-index-uniswap-dai-eth
           description: "index historical data for pickle uniswap dai-eth jar"
           rate: rate(5 minutes)
           input:

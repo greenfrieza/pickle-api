@@ -1,4 +1,4 @@
-const { getAssetData } = require("../../../util/util");
+const { getAssetData, respond } = require("../../../util/util");
 
 exports.handler = async (event) => {
   if (event.source === "serverless-plugin-warmup") {
@@ -17,13 +17,5 @@ exports.handler = async (event) => {
   }
 
   const points = data.map(item => ({x: item.timestamp, y: parseFloat(item.ratio)}));
-  return {
-    statusCode: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "OPTIONS,GET",
-      "Access-Control-Allow-Headers": "Content-Type"
-    },
-    body: JSON.stringify(points),
-  };
+  return respond(200, points);
 }

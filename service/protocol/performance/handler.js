@@ -1,5 +1,5 @@
 const { jars } = require("../../jars");
-const { getAssetData, getMasterChef, getUsdValue, getJar, getContractPrice } = require("../../util/util");
+const { getAssetData, getMasterChef, getUsdValue, getJar, getContractPrice, respond } = require("../../util/util");
 const { PICKLE } = require("../../util/constants");
 
 // data point constants - index twice per hour, 48 per day
@@ -33,15 +33,7 @@ exports.handler = async (event) => {
     thirtyDayFarm: thirtyDay + farmApy,
   };
 
-  return {
-    statusCode: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "OPTIONS,GET",
-      "Access-Control-Allow-Headers": "Content-Type"
-    },
-    body: JSON.stringify(jarPerformance),
-  };
+  return respond(200, jarPerformance);
 }
 
 // helper functions
