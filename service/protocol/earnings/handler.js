@@ -1,13 +1,7 @@
 const fetch = require("node-fetch");
-const { jars } = require("../../../jars");
-const { getContractPrice, getUniswapPrice } = require("../../util");
-const { WETH, SCRV, TCRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("../../constants");
-
-const headers = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "OPTIONS,GET",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
+const { jars } = require("../../jars");
+const { getContractPrice, getUniswapPrice, respond } = require("../../util/util");
+const { WETH, SCRV, THREE_CRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("../../util/constants");
 
 exports.handler = async (event) => {
   if (event.source === "serverless-plugin-warmup") {
@@ -63,11 +57,7 @@ exports.handler = async (event) => {
     jarEarnings: jarEarnings.filter(jar => jar.earnedUsd > 0),
   };
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify(user),
-    headers: headers,
-  };
+  return respond(200, user);
 }
 
 const getUsdValue = (asset, tokens, prices) => {
@@ -76,7 +66,7 @@ const getUsdValue = (asset, tokens, prices) => {
     case SCRV:
       earnedUsd = tokens * prices.scrv;
       break;
-    case TCRV:
+    case THREE_CRV:
       earnedUsd = tokens * prices.tcrv;
       break;
     case DAI:
@@ -107,7 +97,7 @@ const getPrices = async () => {
   const prices = await Promise.all([
     getContractPrice(WETH),
     getContractPrice(SCRV),
-    getContractPrice(TCRV),
+    getContractPrice(THREE_CRV),
     getContractPrice(RENBTC),
     getContractPrice(DAI),
     getUniswapPrice(UNI_DAI),

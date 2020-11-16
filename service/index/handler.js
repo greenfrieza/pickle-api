@@ -1,5 +1,5 @@
 const fetch = require("node-fetch");
-const { getBlock, getIndexedBlock, saveItem } = require("../util");
+const { getBlock, getIndexedBlock, saveItem, respond } = require("../util/util");
 
 const THIRTY_MIN_BLOCKS = parseInt(30 * 60 / 13);
 exports.handler =  async (event) => {
@@ -40,7 +40,7 @@ exports.handler =  async (event) => {
     block += THIRTY_MIN_BLOCKS;
   }
 
-  return 200;
+  return respond(200);
 };
 
 const queryRewardsContract = async (contract, block) => {

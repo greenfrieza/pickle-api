@@ -1,8 +1,7 @@
-const fetch = require("node-fetch");
-const { getBlock, getIndexedBlock, saveItem, getJar } = require("../../../util");
+const { getJar, getBlock, getIndexedBlock, saveItem } = require("../util/util");
 
-const THIRTY_MIN_BLOCKS = parseInt(30 * 60 / 13);
-exports.handler =  async (event) => {
+const TEN_MIN_BLOCKS = parseInt(10 * 60 / 13);
+module.exports.indexAsset =  async (event, getPrice) => {
   const { asset, createdBlock, contract } = event;
   let block = await getIndexedBlock(process.env.ASSET_DATA, asset, createdBlock);
   console.log(`Index ${asset} at height: ${block}`);
@@ -15,7 +14,7 @@ exports.handler =  async (event) => {
     }
 
     if (jar.data == null || jar.data.jar == null) {
-      block += THIRTY_MIN_BLOCKS;
+      block += TEN_MIN_BLOCKS;
       continue;
     }
 
@@ -25,8 +24,8 @@ exports.handler =  async (event) => {
     const balance = jarData.balance / Math.pow(10, 18);
     const supply = jarData.totalSupply / Math.pow(10, 18);
     const ratio = jarData.ratio / Math.pow(10, 18);
-    const value = balance.toFixed(2);
-
+    const value = balance * await getPrice(jarData);
+    
     const snapshot = {
       asset: asset,
       height: block,
@@ -38,7 +37,7 @@ exports.handler =  async (event) => {
     };
 
     saveItem(process.env.ASSET_DATA, snapshot);
-    block += THIRTY_MIN_BLOCKS;
+    block += TEN_MIN_BLOCKS;
   }
 
   return 200;

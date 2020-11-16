@@ -1,4 +1,4 @@
-const { UNI_WBTC, UNI_DAI, UNI_USDC, UNI_USDT, DAI, TCRV, SCRV, RENBTC } = require("./service/constants");
+const { UNI_WBTC, UNI_DAI, UNI_USDC, UNI_USDT, DAI, THREE_CRV, SCRV, RENBTC } = require("./util/constants");
 
 module.exports.jars = {
   "0xc80090aa05374d336875907372ee4ee636cbc562": {
@@ -23,7 +23,7 @@ module.exports.jars = {
   },
   "0x1bb74b5ddc1f4fc91d6f9e7906cf68bc93538e33": {
     asset: "3poolCRV",
-    token: TCRV,
+    token: THREE_CRV,
   },
   "0x68d14d66b2b0d6e157c06dc8fefa3d8ba0e66a89": {
     asset: "sCRV",
