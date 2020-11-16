@@ -2,8 +2,8 @@
   "swagger":"2.0",
   "info":{
     "description":"Pickle Finance Serverless API",
-    "version":"Pickle API",
-    "title":"brining-pickle-v2"
+    "version":"1.0",
+    "title":"Pickle API"
   },
   "host":"api.pickle-jar.info",
   "basePath":"/",
