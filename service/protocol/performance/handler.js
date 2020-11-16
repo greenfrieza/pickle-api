@@ -1,6 +1,7 @@
 const { jars } = require("../../jars");
 const { getAssetData, getMasterChef, getUsdValue, getJar, getContractPrice, respond } = require("../../util/util");
 const { PICKLE } = require("../../util/constants");
+const { getFarmData } = require("../farm/handler");
 
 // data point constants - index twice per hour, 48 per day
 const CURRENT = 0;
@@ -73,28 +74,14 @@ const getFarmPerformance = async (asset) => {
 
   // parallelize calls
   const performanceData = await Promise.all([
-    getContractPrice(PICKLE),
-    getMasterChef(),
+    getFarmData(),
     getJar(assetId)
   ]);
 
   // collect performance data
-  const picklePrice = performanceData[0];
-  const masterChefData = performanceData[1].data;
+  const farmData = performanceData[0][assetId];
   const jar = performanceData[2].data.jar;
-  const masterChef = masterChefData.masterChef;
-
-  // match farm, fail fast on non-active farms
-  const farmInfo = masterChefData.masterChefPools.find(pool => pool.token.id === assetId);
-  if (!farmInfo) {
-    return farmInfo;
-  }
-
-  // collect farm data
-  const farmAlloc = farmInfo.allocPoint / masterChef.totalAllocPoint;
-  const rewards = masterChef.rewardsPerBlock / Math.pow(10, 18);
-  const pickleEmission = picklePrice * farmAlloc * rewards;
-  const yearlyEmission = pickleEmission * 276 * 24 * 365;
+  const yearlyEmission = farmData.valuePerDay * 365;
 
   // calculate pickle apy
   const balance = farmInfo.balance / Math.pow(10, 18);

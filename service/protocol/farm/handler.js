@@ -7,9 +7,18 @@ exports.handler = async (event) => {
   if (event.source === "serverless-plugin-warmup") {
     return 200;
   }
+  return respond(200, await this.getFarmData());
+};
 
-  const picklePrice = await getContractPrice(PICKLE);
-  const masterChefData = await getMasterChef();
+module.exports.getFarmData = async () => {
+  // parallelize calls
+  const prerequisites = await Promise.all([
+    getContractPrice(PICKLE),
+    getMasterChef()
+  ]);
+
+  const picklePrice = prerequisites[0];
+  const masterChefData = prerequisites[1];
   const masterChef = masterChefData.data.masterChef;
   const masterChefPools = masterChefData.data.masterChefPools;
   const farms = {
@@ -34,7 +43,7 @@ exports.handler = async (event) => {
     };
   });
 
-  return respond(200, farms);
+  return farms;
 };
 
 // scaling functions

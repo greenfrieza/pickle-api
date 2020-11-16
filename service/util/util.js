@@ -145,28 +145,16 @@ module.exports.getUsdValue = async (asset, balance) => {
   let assetPrice = 0;
   switch (asset) {
     case SCRV:
-      assetPrice = await this.getContractPrice(SCRV);
-      break;
     case THREE_CRV:
-      assetPrice = await this.getContractPrice(THREE_CRV);
-      break;
     case RENBTC:
-      assetPrice = await this.getContractPrice(RENBTC);
-      break;
     case DAI:
-      assetPrice = await this.getContractPrice(DAI);
+      assetPrice = await this.getContractPrice(asset);
       break;
     case UNI_DAI:
-      assetPrice = await this.getUniswapPrice(UNI_DAI);
-      break;
     case UNI_USDC:
-      assetPrice = await this.getUniswapPrice(UNI_USDC);
-      break;
     case UNI_USDT:
-      assetPrice = await this.getUniswapPrice(UNI_USDT);
-      break;
     case UNI_WBTC:
-      assetPrice = await this.getUniswapPrice(UNI_WBTC);
+      assetPrice = await this.getUniswapPrice(asset);
       break;
     default:
       break;

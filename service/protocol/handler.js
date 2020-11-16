@@ -28,4 +28,4 @@ exports.handler = async (event) => {
   assetValues.updatedAt = updatedAt;
 
   return respond(200, assetValues);
-}
+};

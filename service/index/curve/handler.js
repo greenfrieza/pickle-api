@@ -1,5 +1,5 @@
-const { getContractPrice, respond } = require("../../util/util");
-const { indexAsset } = require("../indexUtils");
+const { getContractPrice } = require("../../util/util");
+const { indexAsset } = require("../indexer");
 
 exports.handler = async (event) => {
   const getPrice = async (jarData) => await getContractPrice(jarData.token.id);
