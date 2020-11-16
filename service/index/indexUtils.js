@@ -33,7 +33,7 @@ module.exports.indexAsset =  async (event, getPrice) => {
       balance: balance,
       supply: supply,
       ratio: ratio,
-      value: value,
+      value: parseFloat(value.toFixed(2)),
     };
 
     saveItem(process.env.ASSET_DATA, snapshot);
