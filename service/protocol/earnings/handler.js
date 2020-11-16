@@ -1,7 +1,7 @@
 const fetch = require("node-fetch");
-const { jars } = require("../../../jars");
-const { getContractPrice, getUniswapPrice } = require("../../util");
-const { WETH, SCRV, THREE_CRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("../../constants");
+const { jars } = require("../../jars");
+const { getContractPrice, getUniswapPrice } = require("../../util/util");
+const { WETH, SCRV, THREE_CRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("../../util/constants");
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -107,7 +107,7 @@ const getPrices = async () => {
   const prices = await Promise.all([
     getContractPrice(WETH),
     getContractPrice(SCRV),
-    getContractPrice(TCRV),
+    getContractPrice(THREE_CRV),
     getContractPrice(RENBTC),
     getContractPrice(DAI),
     getUniswapPrice(UNI_DAI),

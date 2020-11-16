@@ -1,4 +1,4 @@
-const { getAssetData } = require("../../util");
+const { getAssetData } = require("../../util/util");
 
 exports.handler = async (event) => {
   if (event.source === "serverless-plugin-warmup") {

@@ -1,4 +1,4 @@
-const { getJar, getBlock, saveItem } = require("../util/util");
+const { getJar, getBlock, getIndexedBlock, saveItem } = require("../util/util");
 
 const TEN_MIN_BLOCKS = parseInt(10 * 60 / 13);
 module.exports.indexAsset =  async (event, getPrice) => {
@@ -24,7 +24,7 @@ module.exports.indexAsset =  async (event, getPrice) => {
     const balance = jarData.balance / Math.pow(10, 18);
     const supply = jarData.totalSupply / Math.pow(10, 18);
     const ratio = jarData.ratio / Math.pow(10, 18);
-    const value = balance * getPrice();
+    const value = balance * await getPrice(jarData);
     
     const snapshot = {
       asset: asset,
@@ -41,18 +41,4 @@ module.exports.indexAsset =  async (event, getPrice) => {
   }
 
   return 200;
-};
-
-const getIndexedBlock = async (table, asset, createdBlock) => {
-  const params = {
-    TableName: table,
-    KeyConditionExpression: "asset = :asset",
-    ExpressionAttributeValues: {
-        ":asset": asset
-    },
-    ScanIndexForward: false,
-    Limit: 1,
-  };
-  let result = await ddb.query(params).promise();
-  return result.Items.length > 0 ? result.Items[0].height : createdBlock;
 };

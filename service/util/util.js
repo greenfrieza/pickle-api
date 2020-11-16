@@ -48,6 +48,20 @@ module.exports.getAssetData = async (table, asset, count) => {
   return count ? data.Items.reverse() : data.Items;
 };
 
+module.exports.getIndexedBlock = async (table, asset, createdBlock) => {
+  const params = {
+    TableName: table,
+    KeyConditionExpression: "asset = :asset",
+    ExpressionAttributeValues: {
+        ":asset": asset
+    },
+    ScanIndexForward: false,
+    Limit: 1,
+  };
+  let result = await ddb.query(params).promise();
+  return result.Items.length > 0 ? result.Items[0].height : createdBlock;
+};
+
 module.exports.getContractPrice = async (contract) => {
   return await fetch(`https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=${contract}&vs_currencies=usd`)
   .then(response => response.json())
