@@ -1,7 +1,7 @@
-const { jars } = require("../../jars");
-const { getAssetData, getMasterChef, getUsdValue, getJar, getContractPrice, respond } = require("../../util/util");
-const { PICKLE } = require("../../util/constants");
+const { getAssetData, respond } = require("../../util/util");
 const { getFarmData } = require("../farm/handler");
+const { jars } = require("../../jars");
+const fetch = require("node-fetch");
 
 // data point constants - index twice per hour, 48 per day
 const CURRENT = 0;
@@ -21,12 +21,18 @@ exports.handler = async (event) => {
     const asset = event.pathParameters.jarname;
     console.log("Request performance data for", asset);
 
-    const data = await getAssetData(process.env.ASSET_DATA, asset, SAMPLE_DAYS);
-    const farmPerformance = await getFarmPerformance(asset);
+    const performanceInfo = await Promise.all([
+      getProtocolPerformance(asset),
+      getAssetData(process.env.ASSET_DATA, asset, SAMPLE_DAYS),
+      getFarmPerformance(asset),
+    ]);
+    const protocol = performanceInfo[0];
+    const data = performanceInfo[1];
+    const farmPerformance = performanceInfo[2];
     const farmApy = farmPerformance ? farmPerformance : 0;
-    const threeDay = getSamplePerformance(data, THREE_DAYS);
-    const sevenDay = getSamplePerformance(data, SEVEN_DAYS);
-    const thirtyDay = getSamplePerformance(data, THIRTY_DAYS);
+    const threeDay = getSamplePerformance(data, THREE_DAYS) + protocol;
+    const sevenDay = getSamplePerformance(data, SEVEN_DAYS) + protocol;
+    const thirtyDay = getSamplePerformance(data, THIRTY_DAYS) + protocol;
     const jarPerformance = {
       threeDay: format(threeDay),
       sevenDay: format(sevenDay),
@@ -53,7 +59,6 @@ const getBlock = (data, offset) => data.length >= offset ? data[data.length - (o
 const getTimestamp = (data, offset) => data.length >= offset ? data[data.length - (offset + 1)].timestamp : undefined;
 
 const getPerformance = (ratioDiff, blockDiff, timeDiff) => {
-  console.log(ratioDiff, blockDiff, timeDiff);
   const scalar = (ONE_YEAR_MS / timeDiff) * blockDiff;
   const slope = ratioDiff / blockDiff;
   return scalar * slope * 100;
@@ -89,10 +94,45 @@ const getFarmPerformance = async (asset) => {
   return farmData.apy * 100;
 };
 
-const getCurvePerformance = async (asset) => {
+// TODO: handle 3 / 7 / 30 days
+const getProtocolPerformance = async (asset) => {
+  const jarKey = Object.keys(jars).find(jar => jars[jar].asset.toLowerCase() === asset);
+  switch (jars[jarKey].protocol) {
+    case "curve":
+      return await getCurvePerformance(asset);
+    case "uniswap":
+      return await getUniswapPerformance(jars[jarKey].token);
+    default:
+      return 0;
+  }
+};
 
+const curveApi = "https://www.curve.fi/raw-stats/apys.json";
+const apyMapping = {
+  "3poolcrv": "3pool",
+  "renbtccrv": "ren2",
+  "scrv": "susd",
+}
+const getCurvePerformance = async (asset) => {
+  const curveData = await fetch(curveApi)
+    .then(response => response.json());
+  return curveData.apy.week[apyMapping[asset]];
 };
 
 const getUniswapPerformance = async (asset) => {
-
+  const query = `
+    {
+      pairDayDatas(first: 1, skip: 1, orderBy: date, orderDirection: desc, where:{pairAddress: "${asset}"}) {
+        reserveUSD
+        dailyVolumeUSD
+      }
+    }
+  `;
+  const pairDayResponse = await fetch(process.env.UNISWAP, {
+    method: "POST",
+    body: JSON.stringify({query})
+  }).then(response => response.json())
+  .then(pairInfo => pairInfo.data.pairDayDatas[0]);
+  const fees = pairDayResponse.dailyVolumeUSD * 0.003;
+  return fees / pairDayResponse.reserveUSD * 365 * 100;
 };
