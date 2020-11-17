@@ -5,7 +5,7 @@ const { getFarmData } = require("../farm/handler");
 
 // data point constants - index twice per hour, 48 per day
 const CURRENT = 0;
-const ONE_DAY = 48;
+const ONE_DAY = 24 * 60 / 10; // data points indexed at 10 minute intervals
 const THREE_DAYS = ONE_DAY * 3;
 const SEVEN_DAYS = ONE_DAY * 7;
 const THIRTY_DAYS = ONE_DAY * 30;
@@ -17,32 +17,43 @@ exports.handler = async (event) => {
     return 200;
   }
 
-  const asset = event.pathParameters.jarname;
-  console.log("Request performance data for", asset);
-  const data = await getAssetData(process.env.ASSET_DATA, asset, SAMPLE_DAYS);
-  const farmPerformance = await getFarmPerformance(asset);
-  const farmApy = farmPerformance ? farmPerformance : 0;
-  const threeDay = getSamplePerformance(data, THREE_DAYS);
-  const sevenDay = getSamplePerformance(data, SEVEN_DAYS);
-  const thirtyDay = getSamplePerformance(data, THIRTY_DAYS);
-  const jarPerformance = {
-    threeDay: threeDay,
-    sevenDay: sevenDay,
-    thirtyDay: thirtyDay,
-    threeDayFarm: threeDay + farmApy,
-    sevenDayFarm: sevenDay + farmApy,
-    thirtyDayFarm: thirtyDay + farmApy,
-  };
+  try {
+    const asset = event.pathParameters.jarname;
+    console.log("Request performance data for", asset);
 
-  return respond(200, jarPerformance);
+    const data = await getAssetData(process.env.ASSET_DATA, asset, SAMPLE_DAYS);
+    const farmPerformance = await getFarmPerformance(asset);
+    const farmApy = farmPerformance ? farmPerformance : 0;
+    const threeDay = getSamplePerformance(data, THREE_DAYS);
+    const sevenDay = getSamplePerformance(data, SEVEN_DAYS);
+    const thirtyDay = getSamplePerformance(data, THIRTY_DAYS);
+    const jarPerformance = {
+      threeDay: format(threeDay),
+      sevenDay: format(sevenDay),
+      thirtyDay: format(thirtyDay),
+      threeDayFarm: format(threeDay + farmApy),
+      sevenDayFarm: format(sevenDay + farmApy),
+      thirtyDayFarm: format(thirtyDay + farmApy),
+    };
+
+    return respond(200, jarPerformance);
+  } catch (err) {
+    console.log(err);
+    return respond(500, {
+      statusCode: 500,
+      message: "Unable to retreive jar performance"
+    });
+  }
 }
 
 // helper functions
+const format = (value) => value ? parseFloat(value.toFixed(2)) : undefined;
 const getRatio = (data, offset) => data.length >= offset ? data[data.length - (offset + 1)].ratio : undefined;
 const getBlock = (data, offset) => data.length >= offset ? data[data.length - (offset + 1)].height : undefined;
 const getTimestamp = (data, offset) => data.length >= offset ? data[data.length - (offset + 1)].timestamp : undefined;
 
 const getPerformance = (ratioDiff, blockDiff, timeDiff) => {
+  console.log(ratioDiff, blockDiff, timeDiff);
   const scalar = (ONE_YEAR_MS / timeDiff) * blockDiff;
   const slope = ratioDiff / blockDiff;
   return scalar * slope * 100;
@@ -70,23 +81,18 @@ const getSamplePerformance = (data, offset) => {
 };
 
 const getFarmPerformance = async (asset) => {
-  const assetId = Object.keys(jars).find(key => jars[key].asset.toLowerCase() === asset);
+  const performanceData = await getFarmData();
+  const farmData = performanceData[asset];
+  if (!farmData) {
+    return farmData;
+  }
+  return farmData.apy * 100;
+};
 
-  // parallelize calls
-  const performanceData = await Promise.all([
-    getFarmData(),
-    getJar(assetId)
-  ]);
+const getCurvePerformance = async (asset) => {
 
-  // collect performance data
-  const farmData = performanceData[0][assetId];
-  const jar = performanceData[2].data.jar;
-  const yearlyEmission = farmData.valuePerDay * 365;
+};
 
-  // calculate pickle apy
-  const balance = farmInfo.balance / Math.pow(10, 18);
-  const ratio = jar.ratio / Math.pow(10, 18);
-  const poolValue = await getUsdValue(jars[assetId].token, balance) * ratio;
+const getUniswapPerformance = async (asset) => {
 
-  return (yearlyEmission / poolValue) * 100;
 };

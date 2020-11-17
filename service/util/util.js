@@ -1,7 +1,7 @@
 const AWS = require("aws-sdk");
 const Web3 = require("web3");
 const fetch = require("node-fetch");
-const { SCRV, THREE_CRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("./constants");
+const { SCRV, THREE_CRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC, UNI_PICKLE } = require("./constants");
 const ddb = new AWS.DynamoDB.DocumentClient({apiVersion: "2012-08-10"});
 const web3 = new Web3(new Web3.providers.HttpProvider(`https://:${process.env.INFURA_PROJECT_SECRET}@mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`));
 
@@ -154,6 +154,7 @@ module.exports.getUsdValue = async (asset, balance) => {
     case UNI_USDC:
     case UNI_USDT:
     case UNI_WBTC:
+    case UNI_PICKLE:
       assetPrice = await this.getUniswapPrice(asset);
       break;
     default:
