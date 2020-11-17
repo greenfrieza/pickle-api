@@ -10,7 +10,7 @@ exports.handler = async (event) => {
 
   const liquidity = await getUniswapPair(UNI_PICKLE);
   const assetValues = {
-    liquidity: formatFloat(liquidity.data.pair.reserveUSD),
+    "pickle-eth": formatFloat(liquidity.data.pair.reserveUSD),
   };
 
   let updatedAt = 0;
@@ -24,8 +24,8 @@ exports.handler = async (event) => {
     jarValue += value;
   }
   assetValues.jarValue = jarValue;
-  assetValues.totalValue = jarValue + assetValues.liquidity;
+  assetValues.totalValue = jarValue + assetValues["pickle-eth"];
   assetValues.updatedAt = updatedAt;
 
   return respond(200, assetValues);
-}
+};

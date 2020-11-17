@@ -1,10 +1,11 @@
+const { getAssetData, respond } = require("../../util/util");
+const { getFarmData } = require("../farm/handler");
 const { jars } = require("../../jars");
-const { getAssetData, getMasterChef, getUsdValue, getJar, getContractPrice, respond } = require("../../util/util");
-const { PICKLE } = require("../../util/constants");
+const fetch = require("node-fetch");
 
 // data point constants - index twice per hour, 48 per day
 const CURRENT = 0;
-const ONE_DAY = 48;
+const ONE_DAY = 24 * 60 / 10; // data points indexed at 10 minute intervals
 const THREE_DAYS = ONE_DAY * 3;
 const SEVEN_DAYS = ONE_DAY * 7;
 const THIRTY_DAYS = ONE_DAY * 30;
@@ -16,27 +17,43 @@ exports.handler = async (event) => {
     return 200;
   }
 
-  const asset = event.pathParameters.jarname;
-  console.log("Request performance data for", asset);
-  const data = await getAssetData(process.env.ASSET_DATA, asset, SAMPLE_DAYS);
-  const farmPerformance = await getFarmPerformance(asset);
-  const farmApy = farmPerformance ? farmPerformance : 0;
-  const threeDay = getSamplePerformance(data, THREE_DAYS);
-  const sevenDay = getSamplePerformance(data, SEVEN_DAYS);
-  const thirtyDay = getSamplePerformance(data, THIRTY_DAYS);
-  const jarPerformance = {
-    threeDay: threeDay,
-    sevenDay: sevenDay,
-    thirtyDay: thirtyDay,
-    threeDayFarm: threeDay + farmApy,
-    sevenDayFarm: sevenDay + farmApy,
-    thirtyDayFarm: thirtyDay + farmApy,
-  };
+  try {
+    const asset = event.pathParameters.jarname;
+    console.log("Request performance data for", asset);
 
-  return respond(200, jarPerformance);
+    const performanceInfo = await Promise.all([
+      getProtocolPerformance(asset),
+      getAssetData(process.env.ASSET_DATA, asset, SAMPLE_DAYS),
+      getFarmPerformance(asset),
+    ]);
+    const protocol = performanceInfo[0];
+    const data = performanceInfo[1];
+    const farmPerformance = performanceInfo[2];
+    const farmApy = farmPerformance ? farmPerformance : 0;
+    const threeDay = getSamplePerformance(data, THREE_DAYS) + protocol;
+    const sevenDay = getSamplePerformance(data, SEVEN_DAYS) + protocol;
+    const thirtyDay = getSamplePerformance(data, THIRTY_DAYS) + protocol;
+    const jarPerformance = {
+      threeDay: format(threeDay),
+      sevenDay: format(sevenDay),
+      thirtyDay: format(thirtyDay),
+      threeDayFarm: format(threeDay + farmApy),
+      sevenDayFarm: format(sevenDay + farmApy),
+      thirtyDayFarm: format(thirtyDay + farmApy),
+    };
+
+    return respond(200, jarPerformance);
+  } catch (err) {
+    console.log(err);
+    return respond(500, {
+      statusCode: 500,
+      message: "Unable to retreive jar performance"
+    });
+  }
 }
 
 // helper functions
+const format = (value) => value ? parseFloat(value.toFixed(2)) : undefined;
 const getRatio = (data, offset) => data.length >= offset ? data[data.length - (offset + 1)].ratio : undefined;
 const getBlock = (data, offset) => data.length >= offset ? data[data.length - (offset + 1)].height : undefined;
 const getTimestamp = (data, offset) => data.length >= offset ? data[data.length - (offset + 1)].timestamp : undefined;
@@ -69,37 +86,53 @@ const getSamplePerformance = (data, offset) => {
 };
 
 const getFarmPerformance = async (asset) => {
-  const assetId = Object.keys(jars).find(key => jars[key].asset.toLowerCase() === asset);
-
-  // parallelize calls
-  const performanceData = await Promise.all([
-    getContractPrice(PICKLE),
-    getMasterChef(),
-    getJar(assetId)
-  ]);
-
-  // collect performance data
-  const picklePrice = performanceData[0];
-  const masterChefData = performanceData[1].data;
-  const jar = performanceData[2].data.jar;
-  const masterChef = masterChefData.masterChef;
-
-  // match farm, fail fast on non-active farms
-  const farmInfo = masterChefData.masterChefPools.find(pool => pool.token.id === assetId);
-  if (!farmInfo) {
-    return farmInfo;
+  const performanceData = await getFarmData();
+  const farmData = performanceData[asset];
+  if (!farmData) {
+    return farmData;
   }
+  return farmData.apy * 100;
+};
 
-  // collect farm data
-  const farmAlloc = farmInfo.allocPoint / masterChef.totalAllocPoint;
-  const rewards = masterChef.rewardsPerBlock / Math.pow(10, 18);
-  const pickleEmission = picklePrice * farmAlloc * rewards;
-  const yearlyEmission = pickleEmission * 276 * 24 * 365;
+// TODO: handle 3 / 7 / 30 days
+const getProtocolPerformance = async (asset) => {
+  const jarKey = Object.keys(jars).find(jar => jars[jar].asset.toLowerCase() === asset);
+  switch (jars[jarKey].protocol) {
+    case "curve":
+      return await getCurvePerformance(asset);
+    case "uniswap":
+      return await getUniswapPerformance(jars[jarKey].token);
+    default:
+      return 0;
+  }
+};
 
-  // calculate pickle apy
-  const balance = farmInfo.balance / Math.pow(10, 18);
-  const ratio = jar.ratio / Math.pow(10, 18);
-  const poolValue = await getUsdValue(jars[assetId].token, balance) * ratio;
+const curveApi = "https://www.curve.fi/raw-stats/apys.json";
+const apyMapping = {
+  "3poolcrv": "3pool",
+  "renbtccrv": "ren2",
+  "scrv": "susd",
+}
+const getCurvePerformance = async (asset) => {
+  const curveData = await fetch(curveApi)
+    .then(response => response.json());
+  return curveData.apy.week[apyMapping[asset]];
+};
 
-  return (yearlyEmission / poolValue) * 100;
+const getUniswapPerformance = async (asset) => {
+  const query = `
+    {
+      pairDayDatas(first: 1, skip: 1, orderBy: date, orderDirection: desc, where:{pairAddress: "${asset}"}) {
+        reserveUSD
+        dailyVolumeUSD
+      }
+    }
+  `;
+  const pairDayResponse = await fetch(process.env.UNISWAP, {
+    method: "POST",
+    body: JSON.stringify({query})
+  }).then(response => response.json())
+  .then(pairInfo => pairInfo.data.pairDayDatas[0]);
+  const fees = pairDayResponse.dailyVolumeUSD * 0.003;
+  return fees / pairDayResponse.reserveUSD * 365 * 100;
 };
