@@ -8,9 +8,11 @@ exports.handler = async (event) => {
     return 200;
   }
 
+  const includeToken = event.queryStringParameters ? event.queryStringParameters.tokens : false;
   const liquidity = await getUniswapPair(UNI_PICKLE);
   const assetValues = {
     "pickle-eth": formatFloat(liquidity.data.pair.reserveUSD),
+    ...includeToken && {"pickle-ethTokens": parseFloat(liquidity.data.pair.totalSupply)},
   };
 
   let updatedAt = 0;
@@ -21,6 +23,10 @@ exports.handler = async (event) => {
     const value = formatFloat(assetData[0].value);
     updatedAt = Math.max(updatedAt, assetData[0].timestamp);
     assetValues[asset] = value;
+    if (includeToken) {
+      const tokenValueKey = asset + "Tokens";
+      assetValues[tokenValueKey] = parseFloat(assetData[0].balance);
+    }
     jarValue += value;
   }
   assetValues.jarValue = jarValue;

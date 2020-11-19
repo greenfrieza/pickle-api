@@ -1,5 +1,6 @@
 const { getAssetData, respond } = require("../../util/util");
 const { getFarmData } = require("../farm/handler");
+const { UNI_PICKLE } = require("../../util/constants");
 const { jars } = require("../../jars");
 const fetch = require("node-fetch");
 
@@ -21,18 +22,20 @@ exports.handler = async (event) => {
     const asset = event.pathParameters.jarname;
     console.log("Request performance data for", asset);
 
+    const isAsset = asset !== "pickle-eth";
+    console.log(asset, isAsset);
     const performanceInfo = await Promise.all([
       getProtocolPerformance(asset),
-      getAssetData(process.env.ASSET_DATA, asset, SAMPLE_DAYS),
       getFarmPerformance(asset),
+      ...isAsset ? [getAssetData(process.env.ASSET_DATA, asset, SAMPLE_DAYS)] : [],
     ]);
     const protocol = performanceInfo[0];
-    const data = performanceInfo[1];
-    const farmPerformance = performanceInfo[2];
+    const farmPerformance = performanceInfo[1];
+    const data = performanceInfo[2];
     const farmApy = farmPerformance ? farmPerformance : 0;
-    const threeDay = getSamplePerformance(data, THREE_DAYS) + protocol;
-    const sevenDay = getSamplePerformance(data, SEVEN_DAYS) + protocol;
-    const thirtyDay = getSamplePerformance(data, THIRTY_DAYS) + protocol;
+    const threeDay = isAsset ? getSamplePerformance(data, THREE_DAYS) : 0 + protocol;
+    const sevenDay = isAsset ? getSamplePerformance(data, SEVEN_DAYS) : 0 + protocol;
+    const thirtyDay = isAsset ? getSamplePerformance(data, THIRTY_DAYS) : 0 + protocol;
     const jarPerformance = {
       threeDay: format(threeDay),
       sevenDay: format(sevenDay),
@@ -94,14 +97,15 @@ const getFarmPerformance = async (asset) => {
   return farmData.apy * 100;
 };
 
-// TODO: handle 3 / 7 / 30 days
+// TODO: handle 3 / 7 / 30 days, handle liqduidity edge case more gracefully
 const getProtocolPerformance = async (asset) => {
   const jarKey = Object.keys(jars).find(jar => jars[jar].asset.toLowerCase() === asset);
-  switch (jars[jarKey].protocol) {
+  const switchKey = jars[jarKey] ? jars[jarKey].protocol : "uniswap"; // pickle-eth
+  switch (switchKey) {
     case "curve":
       return await getCurvePerformance(asset);
     case "uniswap":
-      return await getUniswapPerformance(jars[jarKey].token);
+      return await getUniswapPerformance(jars[jarKey] ? jars[jarKey].token : UNI_PICKLE);
     default:
       return 0;
   }

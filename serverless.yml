@@ -56,6 +56,24 @@ provider:
     INFURA_PROJECT_SECRET: ${self:custom.secrets.INFURA_PROJECT_SECRET}
 
 functions:
+  get-protocol-reward:
+    handler: service/protocol/reward/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 10
+    events:
+      - http:
+          path: /protocol/reward
+          method: get
+          cors: true
+          documentation:
+            summary: "Retrieve staking information"
+            description: "Get information surrounding staked tokens, values, percentages, and apy"
+            tags:
+              - "Protocol"
+            methodResponses:
+              - statusCode: "200"
+              - statusCode: "500"
+
   get-protocol-value:
     handler: service/protocol/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
