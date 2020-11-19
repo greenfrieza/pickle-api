@@ -83,9 +83,17 @@ functions:
           path: /protocol/value
           method: get
           cors: true
+          request:
+            parameters:
+              querystrings:
+                tokens: false
           documentation:
             summary: "Retrieve value locked in all jars and protocol"
             description: "Jar values are pulled from indexed chain data with the total value included as the sum of all jars"
+            queryParams:
+              - name: "tokens"
+                description: "Optionally include token balances"
+                required: false
             tags:
               - "Protocol"
             methodResponses:
