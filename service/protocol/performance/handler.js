@@ -23,7 +23,6 @@ exports.handler = async (event) => {
     console.log("Request performance data for", asset);
 
     const isAsset = asset !== "pickle-eth";
-    console.log(asset, isAsset);
     const performanceInfo = await Promise.all([
       getProtocolPerformance(asset),
       getFarmPerformance(asset),
