@@ -119,13 +119,13 @@ const apyMapping = {
 const getCurvePerformance = async (asset) => {
   const curveData = await fetch(curveApi)
     .then(response => response.json());
-  return curveData.apy.week[apyMapping[asset]];
+  return curveData.apy.day[apyMapping[asset]];
 };
 
 const getUniswapPerformance = async (asset) => {
   const query = `
     {
-      pairDayDatas(first: 1, skip: 1, orderBy: date, orderDirection: desc, where:{pairAddress: "${asset}"}) {
+      pairDayDatas(first: 1, orderBy: date, orderDirection: desc, where:{pairAddress: "${asset}"}) {
         reserveUSD
         dailyVolumeUSD
       }
