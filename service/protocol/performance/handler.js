@@ -1,5 +1,6 @@
 const { getAssetData, respond } = require("../../util/util");
 const { getFarmData } = require("../farm/handler");
+const { UNI_PICKLE } = require("../../util/constants");
 const { jars } = require("../../jars");
 const fetch = require("node-fetch");
 
@@ -21,22 +22,31 @@ exports.handler = async (event) => {
     const asset = event.pathParameters.jarname;
     console.log("Request performance data for", asset);
 
+    const isAsset = asset !== "pickle-eth";
     const performanceInfo = await Promise.all([
-      getProtocolPerformance(asset),
-      getAssetData(process.env.ASSET_DATA, asset, SAMPLE_DAYS),
+      getProtocolPerformance(asset, ONE_DAY),
+      getProtocolPerformance(asset, SEVEN_DAYS),
+      getProtocolPerformance(asset, THIRTY_DAYS),
       getFarmPerformance(asset),
+      ...isAsset ? [getAssetData(process.env.ASSET_DATA, asset, SAMPLE_DAYS)] : [],
     ]);
-    const protocol = performanceInfo[0];
-    const data = performanceInfo[1];
-    const farmPerformance = performanceInfo[2];
+
+    const oneDayProtocol = performanceInfo[0];
+    const sevenDayProtocol = performanceInfo[1];
+    const thirtyDayProtocol = performanceInfo[2];
+    const farmPerformance = performanceInfo[3];
+    const data = performanceInfo[4];
     const farmApy = farmPerformance ? farmPerformance : 0;
-    const threeDay = getSamplePerformance(data, THREE_DAYS) + protocol;
-    const sevenDay = getSamplePerformance(data, SEVEN_DAYS) + protocol;
-    const thirtyDay = getSamplePerformance(data, THIRTY_DAYS) + protocol;
+    const oneDay = isAsset ? getSamplePerformance(data, ONE_DAY) : 0 + oneDayProtocol;
+    const threeDay = isAsset ? getSamplePerformance(data, THREE_DAYS) : 0 + oneDayProtocol;
+    const sevenDay = isAsset ? getSamplePerformance(data, SEVEN_DAYS) : 0 + sevenDayProtocol;
+    const thirtyDay = isAsset ? getSamplePerformance(data, THIRTY_DAYS) : 0 + thirtyDayProtocol;
     const jarPerformance = {
+      oneDay: format(oneDay),
       threeDay: format(threeDay),
       sevenDay: format(sevenDay),
       thirtyDay: format(thirtyDay),
+      oneDayFarm: format(oneDay + farmApy),
       threeDayFarm: format(threeDay + farmApy),
       sevenDayFarm: format(sevenDay + farmApy),
       thirtyDayFarm: format(thirtyDay + farmApy),
@@ -94,14 +104,15 @@ const getFarmPerformance = async (asset) => {
   return farmData.apy * 100;
 };
 
-// TODO: handle 3 / 7 / 30 days
-const getProtocolPerformance = async (asset) => {
+// TODO: handle 3 / 7 / 30 days, handle liqduidity edge case more gracefully
+const getProtocolPerformance = async (asset, days) => {
   const jarKey = Object.keys(jars).find(jar => jars[jar].asset.toLowerCase() === asset);
-  switch (jars[jarKey].protocol) {
+  const switchKey = jars[jarKey] ? jars[jarKey].protocol : "uniswap"; // pickle-eth
+  switch (switchKey) {
     case "curve":
-      return await getCurvePerformance(asset);
+      return await getCurvePerformance(asset, days);
     case "uniswap":
-      return await getUniswapPerformance(jars[jarKey].token);
+      return await getUniswapPerformance(jars[jarKey] ? jars[jarKey].token : UNI_PICKLE, days);
     default:
       return 0;
   }
@@ -113,16 +124,24 @@ const apyMapping = {
   "renbtccrv": "ren2",
   "scrv": "susd",
 }
-const getCurvePerformance = async (asset) => {
+const getCurvePerformance = async (asset, days) => {
   const curveData = await fetch(curveApi)
     .then(response => response.json());
-  return curveData.apy.week[apyMapping[asset]];
+  switch (days) {
+    case ONE_DAY:
+    case THREE_DAYS:
+      return curveData.apy.day[apyMapping[asset]] * 100;
+    case SEVEN_DAYS:
+      return curveData.apy.week[apyMapping[asset]] * 100;
+    default:
+      return curveData.apy.month[apyMapping[asset]] * 100;
+  }
 };
 
-const getUniswapPerformance = async (asset) => {
+const getUniswapPerformance = async (asset, days) => {
   const query = `
     {
-      pairDayDatas(first: 1, skip: 1, orderBy: date, orderDirection: desc, where:{pairAddress: "${asset}"}) {
+      pairDayDatas(first: 30, orderBy: date, orderDirection: desc, where:{pairAddress: "${asset}"}) {
         reserveUSD
         dailyVolumeUSD
       }
@@ -132,7 +151,26 @@ const getUniswapPerformance = async (asset) => {
     method: "POST",
     body: JSON.stringify({query})
   }).then(response => response.json())
-  .then(pairInfo => pairInfo.data.pairDayDatas[0]);
-  const fees = pairDayResponse.dailyVolumeUSD * 0.003;
-  return fees / pairDayResponse.reserveUSD * 365 * 100;
+  .then(pairInfo => pairInfo.data.pairDayDatas);
+
+  let sampleDays;
+  switch (days) {
+    case ONE_DAY:
+    case THREE_DAYS:
+      sampleDays = 1;
+      break;
+    case SEVEN_DAYS:
+      sampleDays = 7;
+      break;
+    default:
+      sampleDays = 30;
+  }
+
+  let totalApy = 0;
+  for (let i = 0; i < sampleDays; i++) {
+    let fees = pairDayResponse[i].dailyVolumeUSD * 0.003;
+    totalApy += fees / pairDayResponse[i].reserveUSD * 365 * 100;
+  }
+
+  return totalApy / sampleDays;
 };

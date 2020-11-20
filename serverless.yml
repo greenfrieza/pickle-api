@@ -56,18 +56,44 @@ provider:
     INFURA_PROJECT_SECRET: ${self:custom.secrets.INFURA_PROJECT_SECRET}
 
 functions:
+  get-protocol-reward:
+    handler: service/protocol/reward/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 30
+    events:
+      - http:
+          path: /protocol/reward
+          method: get
+          cors: true
+          documentation:
+            summary: "Retrieve staking information"
+            description: "Get information surrounding staked tokens, values, percentages, and apy"
+            tags:
+              - "Protocol"
+            methodResponses:
+              - statusCode: "200"
+              - statusCode: "500"
+
   get-protocol-value:
     handler: service/protocol/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
-    timeout: 10
+    timeout: 30
     events:
       - http:
           path: /protocol/value
           method: get
           cors: true
+          request:
+            parameters:
+              querystrings:
+                tokens: false
           documentation:
             summary: "Retrieve value locked in all jars and protocol"
             description: "Jar values are pulled from indexed chain data with the total value included as the sum of all jars"
+            queryParams:
+              - name: "tokens"
+                description: "Optionally include token balances"
+                required: false
             tags:
               - "Protocol"
             methodResponses:
@@ -77,7 +103,7 @@ functions:
   get-protocol-earnings:
     handler: service/protocol/earnings/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
-    timeout: 10
+    timeout: 30
     events:
       - http:
           path: /protocol/earnings/{userId}
@@ -99,7 +125,7 @@ functions:
   get-protocol-farm:
     handler: service/protocol/farm/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
-    timeout: 10
+    timeout: 30
     events:
       - http:
           path: /protocol/farm
@@ -117,7 +143,7 @@ functions:
   get-protocol-jar-performance:
     handler: service/protocol/performance/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
-    timeout: 10
+    timeout: 30
     events:
       - http:
           path: /protocol/jar/{jarname}/performance
@@ -139,7 +165,7 @@ functions:
   get-chart-jar-performance:
     handler: service/chart/jar/performance/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
-    timeout: 10
+    timeout: 30
     events:
       - http:
           path: /chart/jar/{jarname}/performance
@@ -161,7 +187,7 @@ functions:
   get-chart-jar:
     handler: service/chart/jar/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
-    timeout: 10
+    timeout: 30
     events:
       - http:
           path: /chart/jar/{jarname}
@@ -191,7 +217,7 @@ functions:
   get-chart-reward:
     handler: service/chart/reward/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
-    timeout: 10
+    timeout: 30
     events:
       - http:
           path: /chart/reward/{token}
