@@ -24,23 +24,19 @@ exports.handler = async (event) => {
 
     const isAsset = asset !== "pickle-eth";
     const performanceInfo = await Promise.all([
-      getProtocolPerformance(asset, ONE_DAY),
-      getProtocolPerformance(asset, SEVEN_DAYS),
-      getProtocolPerformance(asset, THIRTY_DAYS),
+      getProtocolPerformance(asset),
       getFarmPerformance(asset),
       ...isAsset ? [getAssetData(process.env.ASSET_DATA, asset, SAMPLE_DAYS)] : [],
     ]);
 
-    const oneDayProtocol = performanceInfo[0];
-    const sevenDayProtocol = performanceInfo[1];
-    const thirtyDayProtocol = performanceInfo[2];
-    const farmPerformance = performanceInfo[3];
-    const data = performanceInfo[4];
+    const protocol = performanceInfo[0];
+    const farmPerformance = performanceInfo[1];
+    const data = performanceInfo[2];
     const farmApy = farmPerformance ? farmPerformance : 0;
-    const oneDay = isAsset ? getSamplePerformance(data, ONE_DAY) : 0 + oneDayProtocol;
-    const threeDay = isAsset ? getSamplePerformance(data, THREE_DAYS) : 0 + oneDayProtocol;
-    const sevenDay = isAsset ? getSamplePerformance(data, SEVEN_DAYS) : 0 + sevenDayProtocol;
-    const thirtyDay = isAsset ? getSamplePerformance(data, THIRTY_DAYS) : 0 + thirtyDayProtocol;
+    const oneDay = isAsset ? getSamplePerformance(data, ONE_DAY) : 0 + protocol.oneDay;
+    const threeDay = isAsset ? getSamplePerformance(data, THREE_DAYS) : 0 + protocol.oneDay;
+    const sevenDay = isAsset ? getSamplePerformance(data, SEVEN_DAYS) : 0 + protocol.sevenDay;
+    const thirtyDay = isAsset ? getSamplePerformance(data, THIRTY_DAYS) : 0 + protocol.thirtyDay;
     const jarPerformance = {
       oneDay: format(oneDay),
       threeDay: format(threeDay),
@@ -105,14 +101,14 @@ const getFarmPerformance = async (asset) => {
 };
 
 // TODO: handle 3 / 7 / 30 days, handle liqduidity edge case more gracefully
-const getProtocolPerformance = async (asset, days) => {
+const getProtocolPerformance = async (asset) => {
   const jarKey = Object.keys(jars).find(jar => jars[jar].asset.toLowerCase() === asset);
   const switchKey = jars[jarKey] ? jars[jarKey].protocol : "uniswap"; // pickle-eth
   switch (switchKey) {
     case "curve":
-      return await getCurvePerformance(asset, days);
+      return await getCurvePerformance(asset);
     case "uniswap":
-      return await getUniswapPerformance(jars[jarKey] ? jars[jarKey].token : UNI_PICKLE, days);
+      return await getUniswapPerformance(jars[jarKey] ? jars[jarKey].token : UNI_PICKLE);
     default:
       return 0;
   }
@@ -127,18 +123,15 @@ const apyMapping = {
 const getCurvePerformance = async (asset, days) => {
   const curveData = await fetch(curveApi)
     .then(response => response.json());
-  switch (days) {
-    case ONE_DAY:
-    case THREE_DAYS:
-      return curveData.apy.day[apyMapping[asset]] * 100;
-    case SEVEN_DAYS:
-      return curveData.apy.week[apyMapping[asset]] * 100;
-    default:
-      return curveData.apy.month[apyMapping[asset]] * 100;
-  }
+  return {
+    oneDay: curveData.apy.day[apyMapping[asset]] * 100,
+    threeDay: curveData.apy.day[apyMapping[asset]] * 100,
+    sevenDay: curveData.apy.day[apyMapping[asset]] * 100,
+    thirtyDay: curveData.apy.month[apyMapping[asset]] * 100,
+  };
 };
 
-const getUniswapPerformance = async (asset, days) => {
+const getUniswapPerformance = async (asset) => {
   const query = `
     {
       pairDayDatas(first: 30, orderBy: date, orderDirection: desc, where:{pairAddress: "${asset}"}) {
@@ -153,24 +146,22 @@ const getUniswapPerformance = async (asset, days) => {
   }).then(response => response.json())
   .then(pairInfo => pairInfo.data.pairDayDatas);
 
-  let sampleDays;
-  switch (days) {
-    case ONE_DAY:
-    case THREE_DAYS:
-      sampleDays = 1;
-      break;
-    case SEVEN_DAYS:
-      sampleDays = 7;
-      break;
-    default:
-      sampleDays = 30;
+  const apyMap = {
+    "0": "oneDay",
+    "2": "threeDay",
+    "6": "sevenDay",
+    "29": "thirtyDay",
   }
 
+  const performance = {}
   let totalApy = 0;
-  for (let i = 0; i < sampleDays; i++) {
+  for (let i = 0; i < 30; i++) {
     let fees = pairDayResponse[i].dailyVolumeUSD * 0.003;
     totalApy += fees / pairDayResponse[i].reserveUSD * 365 * 100;
+    if (apyMap[i.toString()]) {
+      performance[apyMap[i.toString()]] = totalApy / (i + 1);
+    }
   }
-
-  return totalApy / sampleDays;
+  console.log("performance", performance);
+  return performance;
 };
