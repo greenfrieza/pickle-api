@@ -120,7 +120,7 @@ const apyMapping = {
   "renbtccrv": "ren2",
   "scrv": "susd",
 }
-const getCurvePerformance = async (asset, days) => {
+const getCurvePerformance = async (asset) => {
   const curveData = await fetch(curveApi)
     .then(response => response.json());
   return {
@@ -151,8 +151,7 @@ const getUniswapPerformance = async (asset) => {
     "2": "threeDay",
     "6": "sevenDay",
     "29": "thirtyDay",
-  }
-
+  };
   const performance = {}
   let totalApy = 0;
   for (let i = 0; i < 30; i++) {
@@ -162,6 +161,5 @@ const getUniswapPerformance = async (asset) => {
       performance[apyMap[i.toString()]] = totalApy / (i + 1);
     }
   }
-  console.log("performance", performance);
   return performance;
 };
