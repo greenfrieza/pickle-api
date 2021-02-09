@@ -1,6 +1,6 @@
 const { getJar, getBlock, getIndexedBlock, saveItem } = require("../util/util");
 
-const TEN_MIN_BLOCKS = parseInt(10 * 60 / 13);
+const THIRTY_MIN_BLOCKS = parseInt(30 * 60 / 13);
 module.exports.indexAsset =  async (event, getPrice) => {
   const { asset, createdBlock, contract } = event;
   let block = await getIndexedBlock(process.env.ASSET_DATA, asset, createdBlock);
@@ -8,13 +8,14 @@ module.exports.indexAsset =  async (event, getPrice) => {
 
   while (true) {
     const jar = await getJar(contract, block);
+    console.log(jar);
 
     if (jar.errors != undefined && jar.errors != null) {
       break;
     }
 
     if (jar.data == null || jar.data.jar == null) {
-      block += TEN_MIN_BLOCKS;
+      block += THIRTY_MIN_BLOCKS;
       continue;
     }
 
@@ -37,7 +38,7 @@ module.exports.indexAsset =  async (event, getPrice) => {
     };
 
     saveItem(process.env.ASSET_DATA, snapshot);
-    block += TEN_MIN_BLOCKS;
+    block += THIRTY_MIN_BLOCKS;
   }
 
   return 200;

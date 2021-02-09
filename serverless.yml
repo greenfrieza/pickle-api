@@ -50,6 +50,7 @@ provider:
   environment:
     PICKLE: "https://api.thegraph.com/subgraphs/name/axejintao/pickle"
     UNISWAP: "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
+    SUSHISWAP: "https://api.thegraph.com/subgraphs/name/croco-finance/sushiswap"
     ASSET_DATA: ${self:custom.table.ASSET_DATA.${self:custom.stage}}
     REWARD_DATA: ${self:custom.table.REWARD_DATA.${self:custom.stage}}
     INFURA_PROJECT_ID: ${self:custom.secrets.INFURA_PROJECT_ID}
@@ -244,19 +245,19 @@ functions:
               - statusCode: "200"
               - statusCode: "500"
 
-  index-staking:
-    handler: service/index/handler.handler
+  index-token:
+    handler: service/index/token/handler.handler
     role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
     timeout: 300
     events:
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-staking-weth
-          description: "index historical data for pickle rewards contract weth token"
-          rate: rate(5 minutes)
+          name: ${self:service}-${self:custom.stage}-index-token-steCRV
+          description: "index historical data for pickle curve steCRV jar"
+          rate: rate(45 minutes)
           input:
-            contract: "0xa17a8883da1abd57c690df9ebf58fc194edab66f"
-            createdBlock: 11147661
-            asset: "weth"
+            contract: "0x77c8a58d940a322aea02dbc8ee4a30350d4239ad"
+            createdBlock: 11739119
+            asset: "stecrv"
 
   index-curve:
     handler: service/index/curve/handler.handler
@@ -266,7 +267,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-curve-3pool
           description: "index historical data for pickle curve 3pool jar"
-          rate: rate(5 minutes)
+          rate: rate(45 minutes)
           input:
             contract: "0x1bb74b5ddc1f4fc91d6f9e7906cf68bc93538e33"
             createdBlock: 11010885
@@ -274,7 +275,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-curve-scrv
           description: "index historical data for pickle curve scrv jar"
-          rate: rate(5 minutes)
+          rate: rate(45 minutes)
           input:
             contract: "0x68d14d66b2b0d6e157c06dc8fefa3d8ba0e66a89"
             createdBlock: 10973000
@@ -282,7 +283,7 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-compound-cdai
           description: "index historical data for pickle compound cdai jar"
-          rate: rate(5 minutes)
+          rate: rate(45 minutes)
           input:
             contract: "0x6949bb624e8e8a90f87cd2058139fcd77d2f3f87"
             createdBlock: 11044218
@@ -290,11 +291,81 @@ functions:
       - schedule:
           name: ${self:service}-${self:custom.stage}-index-curve-renbtc
           description: "index historical data for pickle curve renbtc jar"
-          rate: rate(5 minutes)
+          rate: rate(45 minutes)
           input:
             contract: "0x2e35392f4c36eba7ecafe4de34199b2373af22ec"
             createdBlock: 11010898
             asset: "renbtccrv"
+
+  index-sushiswap:
+    handler: service/index/sushiswap/handler.handler
+    role: arn:aws:iam::135612478587:role/pickle-brining-us-west-1-lambdaRole
+    timeout: 300
+    events:
+      - schedule:
+          name: ${self:service}-${self:custom.stage}-index-sushiswap-dai-eth
+          description: "index historical data for pickle sushiswap dai-eth jar"
+          rate: rate(45 minutes)
+          input:
+            contract: "0x55282da27a3a02ffe599f6d11314d239dac89135"
+            createdBlock: 11498189
+            asset: "slp-dai"
+      - schedule:
+          name: ${self:service}-${self:custom.stage}-index-sushiswap-usdc-eth
+          description: "index historical data for pickle sushiswap usdc-eth jar"
+          rate: rate(45 minutes)
+          input:
+            contract: "0x8c2d16b7f6d3f989eb4878ecf13d695a7d504e43"
+            createdBlock: 11511458
+            asset: "slp-usdc"
+      - schedule:
+          name: ${self:service}-${self:custom.stage}-index-sushiswap-usdt-eth
+          description: "index historical data for pickle sushiswap usdt-eth jar"
+          rate: rate(45 minutes)
+          input:
+            contract: "0xa7a37ae5cb163a3147de83f15e15d8e5f94d6bce"
+            createdBlock: 11511493
+            asset: "slp-usdt"
+      - schedule:
+          name: ${self:service}-${self:custom.stage}-index-sushiswap-wbtc-eth
+          description: "index historical data for pickle sushiswap wbtc-eth jar"
+          rate: rate(45 minutes)
+          input:
+            contract: "0xde74b6c547bd574c3527316a2ee30cd8f6041525"
+            createdBlock: 11511481
+            asset: "slp-wbtc"
+      - schedule:
+          name: ${self:service}-${self:custom.stage}-index-sushiswap-yfi-eth
+          description: "index historical data for pickle sushiswap yfi-eth jar"
+          rate: rate(45 minutes)
+          input:
+            contract: "0x3261d9408604cc8607b687980d40135afa26ffed"
+            createdBlock: 11510682
+            asset: "slp-yfi"
+      - schedule:
+          name: ${self:service}-${self:custom.stage}-index-sushiswap-mic-usdt
+          description: "index historical data for pickle sushiswap mic-usdt jar"
+          rate: rate(45 minutes)
+          input:
+            contract: "0xc66583dd4e25b3cfc8d881f6dbad8288c7f5fd30"
+            createdBlock: 11616981
+            asset: "mic-usdt"
+      - schedule:
+          name: ${self:service}-${self:custom.stage}-index-sushiswap-mis-usdt
+          description: "index historical data for pickle sushiswap mis-usdt jar"
+          rate: rate(45 minutes)
+          input:
+            contract: "0x0faa189afe8ae97de1d2f01e471297678842146d"
+            createdBlock: 11732925
+            asset: "mis-usdt"
+      - schedule:
+          name: ${self:service}-${self:custom.stage}-index-sushiswap-yvecrv-eth
+          description: "index historical data for pickle sushiswap yvecrv-eth jar"
+          rate: rate(45 minutes)
+          input:
+            contract: "0x5eff6d166d66bacbc1bf52e2c54dd391ae6b1f48"
+            createdBlock: 11804602
+            asset: "yvecrv-eth"
 
   index-uniswap:
     handler: service/index/uniswap/handler.handler
@@ -302,34 +373,18 @@ functions:
     timeout: 300
     events:
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-uniswap-wbtc-eth
-          description: "index historical data for pickle uniswap wbtc-eth jar"
-          rate: rate(5 minutes)
+          name: ${self:service}-${self:custom.stage}-index-uniswap-bac-dai
+          description: "index historical data for pickle uniswap bac-dai jar"
+          rate: rate(45 minutes)
           input:
-            contract: "0xc80090aa05374d336875907372ee4ee636cbc562"
-            createdBlock: 11010902
-            asset: "wbtc-eth"
+            contract: "0x2350fc7268f3f5a6cc31f26c38f706e41547505d"
+            createdBlock: 11601176
+            asset: "bac-dai"
       - schedule:
-          name: ${self:service}-${self:custom.stage}-index-uniswap-usdc-eth
-          description: "index historical data for pickle uniswap usdc-eth jar"
-          rate: rate(5 minutes)
+          name: ${self:service}-${self:custom.stage}-index-uniswap-bas-dai
+          description: "index historical data for pickle uniswap bas-dai jar"
+          rate: rate(45 minutes)
           input:
-            contract: "0x53bf2e62fa20e2b4522f05de3597890ec1b352c6"
-            createdBlock: 10960599
-            asset: "usdc-eth"
-      - schedule:
-          name: ${self:service}-${self:custom.stage}-index-uniswap-usdt-eth
-          description: "index historical data for pickle uniswap usdt-eth jar"
-          rate: rate(5 minutes)
-          input:
-            contract: "0x09fc573c502037b149ba87782acc81cf093ec6ef"
-            createdBlock: 10960612
-            asset: "usdt-eth"
-      - schedule:
-          name: ${self:service}-${self:custom.stage}-index-uniswap-dai-eth
-          description: "index historical data for pickle uniswap dai-eth jar"
-          rate: rate(5 minutes)
-          input:
-            contract: "0xcffa068f1e44d98d3753966ebd58d4cfe3bb5162"
-            createdBlock: 10960588
-            asset: "dai-eth"
+            contract: "0x9018ede0972f7902a852b1332a0f616bdaf4bb17"
+            createdBlock: 11732948
+            asset: "bas-dai"

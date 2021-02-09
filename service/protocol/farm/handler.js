@@ -30,6 +30,7 @@ module.exports.getFarmData = async () => {
     const jarKey = Object.keys(jars).find(key => key === pool.token.id);
     const farmName = jarKey ? jars[jarKey].asset.toLowerCase() : "pickle-eth"; // only non-jar farm
     const poolToken = jarKey ? jars[jarKey].token : pool.token.id;
+    console.log(jarKey, farmName, poolToken);
 
     // calculate pool related information
     const allocShare = pool.allocPoint / masterChef.totalAllocPoint;

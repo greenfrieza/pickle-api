@@ -4,9 +4,8 @@ const { UNI_PICKLE } = require("../../util/constants");
 const { jars } = require("../../jars");
 const fetch = require("node-fetch");
 
-// data point constants - index twice per hour, 48 per day
 const CURRENT = 0;
-const ONE_DAY = 24 * 60 / 10; // data points indexed at 10 minute intervals
+const ONE_DAY = 48;
 const THREE_DAYS = ONE_DAY * 3;
 const SEVEN_DAYS = ONE_DAY * 7;
 const THIRTY_DAYS = ONE_DAY * 30;
@@ -32,11 +31,25 @@ exports.handler = async (event) => {
     const protocol = performanceInfo[0];
     const farmPerformance = performanceInfo[1];
     const data = performanceInfo[2];
+
+    if (isAsset && (!data || data.length === 0)) {
+      return respond(200, {
+        oneDay: 0,
+        threeDay: 0,
+        sevenDay: 0,
+        thirtyDay: 0,
+        oneDayFarm: 0,
+        threeDayFarm: 0,
+        sevenDayFarm: 0,
+        thirtyDayFarm: 0,
+      });
+    }
+
     const farmApy = farmPerformance ? farmPerformance : 0;
-    const oneDay = isAsset ? getSamplePerformance(data, ONE_DAY) : 0 + protocol.oneDay;
-    const threeDay = isAsset ? getSamplePerformance(data, THREE_DAYS) : 0 + protocol.oneDay;
-    const sevenDay = isAsset ? getSamplePerformance(data, SEVEN_DAYS) : 0 + protocol.sevenDay;
-    const thirtyDay = isAsset ? getSamplePerformance(data, THIRTY_DAYS) : 0 + protocol.thirtyDay;
+    const oneDay = (isAsset ? getSamplePerformance(data, ONE_DAY) : 0) + protocol.oneDay;
+    const threeDay = (isAsset ? getSamplePerformance(data, THREE_DAYS) : 0) + protocol.threeDay;
+    const sevenDay = (isAsset ? getSamplePerformance(data, SEVEN_DAYS) : 0) + protocol.sevenDay;
+    const thirtyDay = (isAsset ? getSamplePerformance(data, THIRTY_DAYS) : 0) + protocol.thirtyDay;
     const jarPerformance = {
       oneDay: format(oneDay),
       threeDay: format(threeDay),
@@ -82,7 +95,7 @@ const getSamplePerformance = (data, offset) => {
   const sampledTimestamp = getTimestamp(data, offset);
 
   if (!sampledRatio || !sampledBlock || !sampledTimestamp) {
-    return undefined;
+    return 0;
   }
 
   const ratioDiff = currentRatio - sampledRatio;
@@ -108,7 +121,8 @@ const getProtocolPerformance = async (asset) => {
     case "curve":
       return await getCurvePerformance(asset);
     case "uniswap":
-      return await getUniswapPerformance(jars[jarKey] ? jars[jarKey].token : UNI_PICKLE);
+    case "sushiswap":
+      return await getSwapPerformance(jars[jarKey] ? jars[jarKey].token : UNI_PICKLE, switchKey);
     default:
       return 0;
   }
@@ -131,7 +145,7 @@ const getCurvePerformance = async (asset) => {
   };
 };
 
-const getUniswapPerformance = async (asset) => {
+const getSwapPerformance = async (asset, protocol) => {
   const query = `
     {
       pairDayDatas(first: 30, orderBy: date, orderDirection: desc, where:{pairAddress: "${asset}"}) {
@@ -140,7 +154,7 @@ const getUniswapPerformance = async (asset) => {
       }
     }
   `;
-  const pairDayResponse = await fetch(process.env.UNISWAP, {
+  const pairDayResponse = await fetch(protocol === "uniswap" ? process.env.UNISWAP : process.env.SUSHISWAP, {
     method: "POST",
     body: JSON.stringify({query})
   }).then(response => response.json())
@@ -154,12 +168,19 @@ const getUniswapPerformance = async (asset) => {
   };
   const performance = {}
   let totalApy = 0;
-  for (let i = 0; i < 30; i++) {
-    let fees = pairDayResponse[i].dailyVolumeUSD * 0.003;
-    totalApy += fees / pairDayResponse[i].reserveUSD * 365 * 100;
+  for (let i = 0; i < pairDayResponse.length; i++) {
+    const volume = parseFloat(pairDayResponse[i].dailyVolumeUSD);
+    const poolReserve = parseFloat(pairDayResponse[i].reserveUSD);
+    let fees = volume * 0.003;
+    totalApy += fees / poolReserve * 365 * 100;
     if (apyMap[i.toString()]) {
       performance[apyMap[i.toString()]] = totalApy / (i + 1);
     }
   }
+  Object.entries(apyMap).forEach(e => {
+    if (!performance[e[1]]) {
+      performance[e[1]] = 0;
+    }
+  });
   return performance;
 };
