@@ -1,7 +1,11 @@
 const fetch = require("node-fetch");
 const { jars } = require("../../jars");
-const { getContractPrice, getUniswapPrice, respond } = require("../../util/util");
-const { WETH, SCRV, THREE_CRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC, RENBTC } = require("../../util/constants");
+const { getContractPrice, getUniswapPrice, respond, getSushiswapPrice } = require("../../util/util");
+const {
+  WETH, SCRV, THREE_CRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC,
+  RENBTC, UNI_BAC, SUSHI_MIC, SUSHI_DAI, SUSHI_USDC, SUSHI_USDT,
+  SUSHI_WBTC, SUSHI_YFI
+} = require("../../util/constants");
 
 exports.handler = async (event) => {
   if (event.source === "serverless-plugin-warmup") {
@@ -9,18 +13,16 @@ exports.handler = async (event) => {
   }
 
   const userId = event.pathParameters.userId;
-  const userData = await getUserData(userId);
+  const userData = await getUserData(userId.toLowerCase());
+  console.log('Earnings ' + userId);
   
   if (userData.data == null || userData.data.user == null) {
-    return {
-      statusCode: 404,
-      headers: headers,
-    }
+    return respond(404);
   }
 
   const data = userData.data.user;
   const prices = await getPrices();
-  const jarEarnings = data.jarBalances.map(data => {
+  const jarEarnings = data.jarBalances.filter(d => jars[d.jar.id].asset.toLowerCase() !== 'cdai').map(data => {
     const asset = jars[data.jar.id].asset;
     const jarRatio = parseInt(data.jar.ratio) / Math.pow(10, 18);
     const netShareDeposit = parseInt(data.netShareDeposit);
@@ -29,9 +31,13 @@ exports.handler = async (event) => {
     const jarTokens = jarRatio * netShareDeposit;
     const earned = (jarTokens - grossDeposit + grossWithdraw) / Math.pow(10, 18);
     const earnedUsd = getUsdValue(data.jar.token.id, earned, prices);
+    const balance = jarTokens / 1e18;
+    const balanceUsd = getUsdValue(data.jar.token.id, balance, prices);
     return {
       id: data.jar.id,
       asset: asset,
+      balance: balance,
+      balanceUsd: balanceUsd,
       earned: earned,
       earnedUsd: earnedUsd,
     };
@@ -54,7 +60,7 @@ exports.handler = async (event) => {
   const user = {
     userId: userId,
     earnings: jarEarningsUsd,
-    jarEarnings: jarEarnings.filter(jar => jar.earnedUsd > 0),
+    jarEarnings: jarEarnings
   };
 
   return respond(200, user);
@@ -87,6 +93,27 @@ const getUsdValue = (asset, tokens, prices) => {
     case RENBTC:
       earnedUsd = tokens * prices.renbtccrv;
       break;
+    case UNI_BAC:
+      earnedUsd = tokens * prices.unibac;
+      break;
+    case SUSHI_MIC:
+      earnedUsd = tokens * prices.sushimic;
+      break;
+    case SUSHI_DAI:
+      earnedUsd = tokens * prices.sushidai;
+      break;
+    case SUSHI_USDC:
+      earnedUsd = tokens * prices.sushiusdc;
+      break;
+    case SUSHI_USDT:
+      earnedUsd = tokens * prices.sushiusdt;
+      break;
+    case SUSHI_WBTC:
+      earnedUsd = tokens * prices.sushiwbtc;
+      break;
+    case SUSHI_YFI:
+      earnedUsd = tokens * prices.sushiyfi;
+      break;
     default:
       earnedUsd = 0;
   }
@@ -104,6 +131,13 @@ const getPrices = async () => {
     getUniswapPrice(UNI_USDC),
     getUniswapPrice(UNI_USDT),
     getUniswapPrice(UNI_WBTC),
+    getUniswapPrice(UNI_BAC),
+    getSushiswapPrice(SUSHI_MIC),
+    getSushiswapPrice(SUSHI_DAI),
+    getSushiswapPrice(SUSHI_USDC),
+    getSushiswapPrice(SUSHI_USDT),
+    getSushiswapPrice(SUSHI_WBTC),
+    getSushiswapPrice(SUSHI_YFI),
   ]);
   return {
     ethereum: prices[0],
@@ -115,6 +149,13 @@ const getPrices = async () => {
     uniusdc: prices[6],
     uniusdt: prices[7],
     uniwbtc: prices[8],
+    unibac: prices[9],
+    sushimic: prices[10],
+    sushidai: prices[11],
+    sushiusdc: prices[12],
+    sushiusdt: prices[13],
+    sushiwbtc: prices[14],
+    sushiyfi: prices[15],
   };
 };
 

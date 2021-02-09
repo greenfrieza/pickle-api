@@ -19,15 +19,23 @@ exports.handler = async (event) => {
   let jarValue = 0;
   for (const key of Object.keys(jars)) {
     const asset = jars[key].asset.toLowerCase();
-    const assetData = await getAssetData(process.env.ASSET_DATA, asset, 1);
-    const value = formatFloat(assetData[0].value);
-    updatedAt = Math.max(updatedAt, assetData[0].timestamp);
-    assetValues[asset] = value;
-    if (includeToken) {
-      const tokenValueKey = asset + "Tokens";
-      assetValues[tokenValueKey] = parseFloat(assetData[0].balance);
+    console.log('select info for ', asset);
+    const tokenValueKey = asset + "Tokens";
+    const assetData = (await getAssetData(process.env.ASSET_DATA, asset, 1))[0];
+    if (assetData) {
+      const value = formatFloat(assetData.value);
+      updatedAt = Math.max(updatedAt, assetData.timestamp);
+      assetValues[asset] = value;
+      if (includeToken) {
+        assetValues[tokenValueKey] = parseFloat(assetData.balance);
+      }
+      jarValue += value;
+    } else {
+      assetValues[asset] = 0;
+      if (includeToken) {
+        assetValues[tokenValueKey] = 0;
+      }
     }
-    jarValue += value;
   }
   assetValues.jarValue = jarValue;
   assetValues.totalValue = jarValue + assetValues["pickle-eth"];
