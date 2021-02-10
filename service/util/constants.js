@@ -15,6 +15,8 @@ module.exports.UNI_USDT = "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852";
 module.exports.UNI_PICKLE = "0xdc98556ce24f007a5ef6dc1ce96322d65832a819";
 module.exports.UNI_BAC = "0xd4405f0704621dbe9d4dea60e128e0c3b26bddbd";
 module.exports.UNI_BAS = "0x0379da7a5895d13037b6937b109fa8607a659adf";
+
+// sushiswap tokens
 module.exports.SUSHI_MIC = "0xc9cb53b48a2f3a9e75982685644c1870f1405ccb";
 module.exports.SUSHI_DAI = "0xc3d03e4f041fd4cd388c549ee2a29a9e5075882f";
 module.exports.SUSHI_USDC = "0x397ff1542f962076d0bfe58ea045ffa2d347aca0";
