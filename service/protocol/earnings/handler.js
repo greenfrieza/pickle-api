@@ -1,6 +1,6 @@
 const fetch = require("node-fetch");
 const { jars } = require("../../jars");
-const { getContractPrice, getUniswapPrice, respond, getSushiswapPrice } = require("../../util/util");
+const { getContractPrice, getUniswapPrice, respond, getSushiswapPrice, getTokenPrice } = require("../../util/util");
 const {
   WETH, SCRV, THREE_CRV, DAI, STECRV, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC,
   RENBTC, UNI_BAC, UNI_BAS, SUSHI_MIC, SUSHI_DAI, SUSHI_USDC, SUSHI_USDT,
@@ -139,7 +139,7 @@ const getPrices = async () => {
     getContractPrice(THREE_CRV),
     getContractPrice(RENBTC),
     getContractPrice(DAI),
-    getContractPrice(STECRV),
+    getTokenPrice('ethereum'),
     getUniswapPrice(UNI_DAI),
     getUniswapPrice(UNI_USDC),
     getUniswapPrice(UNI_USDT),
