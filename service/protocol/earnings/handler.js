@@ -2,9 +2,9 @@ const fetch = require("node-fetch");
 const { jars } = require("../../jars");
 const { getContractPrice, getUniswapPrice, respond, getSushiswapPrice } = require("../../util/util");
 const {
-  WETH, SCRV, THREE_CRV, DAI, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC,
-  RENBTC, UNI_BAC, SUSHI_MIC, SUSHI_DAI, SUSHI_USDC, SUSHI_USDT,
-  SUSHI_WBTC, SUSHI_YFI
+  WETH, SCRV, THREE_CRV, DAI, STECRV, UNI_DAI, UNI_USDC, UNI_USDT, UNI_WBTC,
+  RENBTC, UNI_BAC, UNI_BAS, SUSHI_MIC, SUSHI_DAI, SUSHI_USDC, SUSHI_USDT,
+  SUSHI_WBTC, SUSHI_YFI, SUSHI_MIS, SUSHI_YVECRV
 } = require("../../util/constants");
 
 exports.handler = async (event) => {
@@ -78,6 +78,9 @@ const getUsdValue = (asset, tokens, prices) => {
     case DAI:
       earnedUsd = tokens * prices.dai;
       break;
+    case STECRV:
+      earnedUsd = tokens * prices.stecrv;
+      break;
     case UNI_DAI:
       earnedUsd = tokens * prices.unidai;
       break;
@@ -95,6 +98,9 @@ const getUsdValue = (asset, tokens, prices) => {
       break;
     case UNI_BAC:
       earnedUsd = tokens * prices.unibac;
+      break;
+    case UNI_BAS:
+      earnedUsd = tokens * prices.unibas;
       break;
     case SUSHI_MIC:
       earnedUsd = tokens * prices.sushimic;
@@ -114,6 +120,12 @@ const getUsdValue = (asset, tokens, prices) => {
     case SUSHI_YFI:
       earnedUsd = tokens * prices.sushiyfi;
       break;
+    case SUSHI_MIS:
+      earnedUsd = tokens * prices.sushimis;
+      break;
+    case SUSHI_YVECRV:
+      earnedUsd = tokens * prices.sushiyvecrv;
+      break;
     default:
       earnedUsd = 0;
   }
@@ -127,35 +139,43 @@ const getPrices = async () => {
     getContractPrice(THREE_CRV),
     getContractPrice(RENBTC),
     getContractPrice(DAI),
+    getContractPrice(STECRV),
     getUniswapPrice(UNI_DAI),
     getUniswapPrice(UNI_USDC),
     getUniswapPrice(UNI_USDT),
     getUniswapPrice(UNI_WBTC),
     getUniswapPrice(UNI_BAC),
+    getUniswapPrice(UNI_BAS),
     getSushiswapPrice(SUSHI_MIC),
     getSushiswapPrice(SUSHI_DAI),
     getSushiswapPrice(SUSHI_USDC),
     getSushiswapPrice(SUSHI_USDT),
     getSushiswapPrice(SUSHI_WBTC),
     getSushiswapPrice(SUSHI_YFI),
+    getSushiswapPrice(SUSHI_MIS),
+    getSushiswapPrice(SUSHI_YVECRV)
   ]);
   return {
     ethereum: prices[0],
     scrv: prices[1],
     tcrv: prices[2],
     renbtccrv: prices[3],
-    dai: prices[4],
-    unidai: prices[5],
-    uniusdc: prices[6],
-    uniusdt: prices[7],
-    uniwbtc: prices[8],
-    unibac: prices[9],
-    sushimic: prices[10],
-    sushidai: prices[11],
-    sushiusdc: prices[12],
-    sushiusdt: prices[13],
-    sushiwbtc: prices[14],
-    sushiyfi: prices[15],
+    stecrv: prices[4],
+    dai: prices[5],
+    unidai: prices[6],
+    uniusdc: prices[7],
+    uniusdt: prices[8],
+    uniwbtc: prices[9],
+    unibac: prices[10],
+    unibas: prices[11],
+    sushimic: prices[12],
+    sushidai: prices[13],
+    sushiusdc: prices[14],
+    sushiusdt: prices[15],
+    sushiwbtc: prices[16],
+    sushiyfi: prices[17],
+    sushimis: prices[18],
+    sushiyvecrv: prices[19]
   };
 };
 
